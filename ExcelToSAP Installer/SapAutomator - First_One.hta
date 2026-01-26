@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Méta-données et titre de la fenêtre -->
+    <title>SAP Automatisation Portable</title>
+
+    <!-- Configuration de l'application HTA (HTML Application) -->
+    <HTA:APPLICATION 
+        APPLICATIONNAME="SAPAuto" 
+        SCROLL="yes" 
+        SINGLEINSTANCE="yes"
+        WINDOWSTATE="normal"
+    >
+
+    <!-- 
+    ==================================================================
+    SECTION CSS : Style de l'interface utilisateur
+    ==================================================================
+    -->
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f0f0; padding: 20px; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { color: #004085; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input[type="text"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; padding: 10px; border: 1px solid #ccc; background: #e9ecef; }
+    </style>
+
+    <script language="VBScript">
+        Dim SapGuiAuto, Application, Connection, Session
+
+        ' --- Fonction principale lancée par le bouton ---
+        Sub RunSapScript
+            On Error Resume Next
+            
+            ' 1. Connexion à l'instance SAP ouverte
+            Set SapGuiAuto = GetObject("SAPGUI")
+            If Err.Number <> 0 Then
+                document.getElementById("status").innerHTML = "Erreur : SAP GUI n'est pas ouvert."
+                Err.Clear
+                Exit Sub
+            End If
+
+            Set Application = SapGuiAuto.GetScriptingEngine
+            If Err.Number <> 0 Then
+                document.getElementById("status").innerHTML = "Erreur : Scripting désactivé."
+                Err.Clear
+                Exit Sub
+            End If
+
+            ' Prend la première connexion et la première session active
+            Set Connection = Application.Children(0)
+            Set Session = Connection.Children(0)
+
+            If Err.Number <> 0 Then
+                document.getElementById("status").innerHTML = "Erreur : Aucune session active trouvée."
+                Err.Clear
+                Exit Sub
+            End If
+
+            ' 2. Récupération des données du formulaire HTML
+            Dim tcode
+            tcode = document.getElementById("txtTcode").value
+            
+            if tcode = "" Then 
+                MsgBox "Veuillez entrer une transaction"
+                Exit Sub
+            End If
+
+            ' 3. AUTOMATISATION SAP (C'est ici que vous mettez votre script enregistré)
+            ' Exemple : Lancer une transaction et afficher un message dans la barre d'état SAP
+            
+            Session.findById("wnd[0]").maximize
+            Session.findById("wnd[0]/tbar[0]/okcd").text = "/n" & tcode
+            Session.findById("wnd[0]").sendVKey 0
+            
+            ' Exemple : Écrire dans un champ (si la transaction est MM03 par exemple)
+            ' Session.findById("wnd[0]/usr/ctxtRMMG1-MATNR").text = "12345"
+
+            document.getElementById("status").innerHTML = "Succès : Transaction " & tcode & " lancée."
+            
+            ' Nettoyage
+            Set Session = Nothing
+            Set Connection = Nothing
+            Set Application = Nothing
+            Set SapGuiAuto = Nothing
+        End Sub
+    </script>
+</head>
+
+<body>
+    <!-- 
+    ==================================================================
+    SECTION HTML : Interface utilisateur (le corps de la fenêtre)
+    ==================================================================
+    -->
+    <div class="container">
+        <h2>SAP Automator (Portable)</h2>
+        <p>Cet outil utilise la session SAP ouverte actuellement.</p>
+        
+        <label for="txtTcode">Code Transaction (ex: MM03, VA01) :</label>
+        <input type="text" id="txtTcode" value="SU3">
+
+        <button onclick="RunSapScript">Exécuter le Script</button>
+
+        <div id="status">En attente...</div>
+    </div>
+</body>
+</html>

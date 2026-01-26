@@ -1,0 +1,657 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnRibbonLoad">
+  <ribbon>
+    <tabs>
+      <!-- ============================================================================================= -->
+      <!-- =============================== ONGLET 1 : ExcelToSAP (Principal) =========================== -->
+      <!-- ============================================================================================= -->
+      <tab id="customTab" label="ExcelToSAP" getVisible="GetTabVisibility">
+
+        <!-- 
+          Groupe : Session SAP
+          Description : Gère la connexion, la déconnexion et la sélection des sessions SAP.
+        -->
+        <group id="grpSession" label="SAP Session">
+            <box id="boxSessionSelection" boxStyle="vertical">
+                <labelControl id="lblSelectSession" label="Select SAP Session" />
+                <comboBox id="cmbSessions" showLabel="false" onChange="OnSessionChange" getItemCount="GetSessionCount" getItemLabel="GetSessionLabel" showItemImage="false" sizeString="XXXXXXXXXXXX" />
+                <buttonGroup id="bgSessionActions">
+                    <button id="btnNewSession" label="New" onAction="NewSAPSession" imageMso="WindowNew" />
+                    <button id="btnCloseSession" label="Close" onAction="CloseSelectedSession" imageMso="WindowClose" />
+                </buttonGroup>
+            </box>
+        </group>
+        
+        <group id="grpSetupData" label="Setup Data">    
+            <box id="boxPlants" boxStyle="vertical">
+                <editBox id="txtPlanningPlant" label="Plng Plant" getText="GetPlanningPlant" onChange="OnPlanningPlantChange" sizeString="XXXX" supertip="Division de planification par défaut (Planning Plant)." />
+                <editBox id="txtMaintenancePlant" label="Maint Plant" getText="GetMaintenancePlant" onChange="OnMaintenancePlantChange" sizeString="XXXX" supertip="Division de maintenance par défaut (Maintenance Plant)." />
+                <editBox id="txtStructur" label="Structure" getText="GetStructur" onChange="OnStructurChange" sizeString="XXXX" supertip="Division de structure par défaut (Structure Plant)." />
+             </box>
+          <separator id="sepPMOptions" />
+            <box id="boxRunOptions" boxStyle="vertical">
+                <editBox id="txtMaintStore" label="Maint Store" getText="GetMaintStore" onChange="OnMaintStoreChange" sizeString="XXXX" supertip="Magasin de maintenance par défaut (Storage Location)." />
+                <editBox id="txtPurchOrg" label="Prch Org" getText="GetPurchOrg" onChange="OnPurchOrgChange" sizeString="XXXX" supertip="Organisation d'achat par défaut (Purchasing Organization)." />
+                <checkBox id="chkDoNotRun" label="Do Not Run" onAction="OnDoNotRunChange" getPressed="GetDoNotRunPressed" supertip="Empêche l'exécution des scripts SAP pour tester la logique Excel uniquement." />
+             </box>
+           </group>
+               
+        <!-- 
+          Groupe : Actions Automatiques
+          Description : Lance les routines principales pour interagir avec SAP. Ce groupe est visible conditionnellement.
+        -->
+        <group id="grpAutomaticData" label="Automatic Data" visible="false">
+          <button id="btnMain" label="Main" size="large" onAction="Main" imageMso="ShapeStar" />
+          <button id="btnMainform" label="Mainform" size="large" onAction="Mainform" imageMso="DataFormExcel" />
+        </group>
+
+        <!-- 
+          Groupe : Maintenance (Plant Maintenance)
+          Description : Contient toutes les actions liées à la maintenance des ordres de travail (WO) et des avis (Notifications).
+        -->
+        <group id="grpPlantMaintenance" label="Plant Maintenance">
+          
+          <!-- Menu pour un Ordre de Travail unique -->
+          <menu id="menuWOSingle" label="Work Order" size="large" imageMso="Paste">
+            <button id="btnWO_IW33_Main" label="Display: Main (IW33)" onAction="R_Z_PMO_IW33_1_Main" imageMso="FileFind" />
+            <button id="btnWO_IW32_Main" label="Change: Main (IW32)" onAction="R_Z_PMO_IW32_1_Main" imageMso="ReviewAcceptChange" />
+            <menuSeparator id="sepWOSingle_MainActions"/>
+
+              <button id="btnWO_IW33_Ops" label="Operations" onAction="R_Z_PMO_IW33_2_Operations" imageMso="TableDesign" />
+              <button id="btnWO_IW33_Comp" label="Components" onAction="R_Z_PMO_IW33_3_Components" imageMso="ObjectsGroup" />
+              <button id="btnWO_IW33_Costs" label="Costs" onAction="R_Z_PMO_IW33_4_Costs" imageMso="AccountingFormat" />
+              <button id="btnWO_IW33_Plan" label="Planning" onAction="R_Z_PMO_IW33_5_Planning" imageMso="FileFind" />
+              <button id="btnWO_IW33_Enh" label="Enhancement" onAction="R_Z_PMO_IW33_6_Enhancement" imageMso="ReviewAcceptChange" />
+              <button id="btnWO_IW33_Log" label="Change: Log" onAction="R_Z_PMO_IW33_7_LOG" imageMso="SourceControlShowHistory" />
+              <button id="btnWO_IW32_Ops" label="Operations" onAction="R_Z_PMO_IW32_2_Operations" imageMso="TableDesign" />
+              <button id="btnWO_IW32_Comp" label="Components" onAction="R_Z_PMO_IW32_3_Components" imageMso="ObjectsGroup" />
+            <menuSeparator id="sepWOSingle_Details"/>
+
+                <button id="btnWO_Report_IW49N"   label="Operations (IW49N)"      onAction="R_Z_PMO_IW49N_Operations" imageMso="TableDesign" />
+                <button id="btnWO_Report_IW40"    label="Multi Level (IW40)"      onAction="R_Z_PMO_IW40" imageMso="DiagramTargetInsert" />
+                <menuSeparator id="sepWOSingle_Reports1"/>
+                <button id="btnWO_Report_IWBK"    label="Components (IWBK)"       onAction="R_Z_PMO_IWBK" imageMso="ObjectsGroup" />
+                <button id="btnWO_Report_MB51"    label="Material Docs (MB51)"    onAction="R_Z_PMO_MB51_MatChar" imageMso="FileNew" />
+                <menuSeparator id="sepWOSingle_Reports2"/>
+                <button id="btnWO_Report_IW47"    label="Confirmations (IW47)"    onAction="R_Z_PMO_IW47" imageMso="ReviewAcceptChange" />
+                <button id="btnWO_Report_ME5A"    label="Requisitions/PO (ME5A)"  onAction="R_Z_PMO_ME5A" imageMso="SharingOpenWssTaskList" />
+            <menuSeparator id="sepWOSingle_ReportsActions"/>
+              <button id="btnWO_Print" label="Print Order (IW32)" onAction="R_Z_PMO_IW32_15_Print_Orders" imageMso="FilePrint" />
+              <button id="btnWO_ToBOOM" label="Order to BOOM (IW32)" onAction="R_Z_PMO_IW32_16_WO_to_BOOM" imageMso="ExportExcel" />
+              <button id="btnWO_Confirm" label="Confirm (IW41)" onAction="R_Z_PMO_IW32_17_CNF" imageMso="ReviewAcceptChange" />
+              <button id="btnWO_CancelConfirm" label="Cancel Confirm (IW45)" onAction="R_Z_PMO_IW32_18_Cancel_CNF" imageMso="Cancel" />
+          </menu>
+
+          <!-- Menu pour une liste d'Ordres de Travail -->
+          <menu id="menuWOList" label="WO List" size="large" imageMso="MultiplePages">
+            <button id="btnWOList_Display" label="Display: Open WO (IW39)" onAction="R_Z_IW39_O" imageMso="FileFind" />
+            <button id="btnWOList_History" label="Display: Closed Orders (IW39H)" onAction="R_Z_IW39_H" imageMso="SourceControlShowHistory" />
+            <button id="btnWOList_DisplayIW38" label="Change: Open WO (IW38)" onAction="R_Z_IW38O" imageMso="ReviewAcceptChange" />
+            <menuSeparator id="sepWOList1"/>
+                <button id="btnWOList_IW49NL" label="Operations List (IW49N)" onAction="R_Z_IW49NL" imageMso="ReportLayout" />
+                <button id="btnWOList_IW40L" label="Multi Level List (IW40)" onAction="R_Z_IW40_L" imageMso="DiagramTargetInsert" />
+                <menuSeparator id="sepWOReports1"/>
+                <button id="btnWOList_IWBKL" label="Components List (IWBK)" onAction="R_Z_IWBK_L" imageMso="ObjectsGroup" />
+                <button id="btnWOList_IW47L" label="Confirmations List (IW47)" onAction="R_Z_IW47_L" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepWOReports2"/>
+                <button id="btnWOList_MB51L" label="Material Docs List (MB51)" onAction="R_Z_MB51_L" imageMso="FileNew" />
+                <button id="btnWOList_ME5AL" label="Req./PO List (ME5A)" onAction="R_Z_ME5A_L" imageMso="SharingOpenWssTaskList" />
+                <menuSeparator id="sepWOReports3"/>
+                <button id="btnWOList_GanttDisplay" label="Display: Gantt (/PGPNL/GS_D)" onAction="R_Z_PMO_Gantt" imageMso="FileFind" />
+                <button id="btnWOList_MassRelease" label="Mass Release (IW38)" onAction="R_Z_PMO_IW38_MassRelease" imageMso="MacroPlay" />
+                <button id="btnWOList_MassTECO" label="Mass TECO (IW38)" onAction="R_Z_PMO_IW38_MassTECO" imageMso="AcceptInvitation" />
+                <menuSeparator id="sepWOMassChange1"/>
+                <button id="btnWOList_MassStatus4SCH" label="Mass Status 4SCH (IW38)" onAction="R_Z_PMO_IW38_4SCH" imageMso="ReviewAcceptChange" /> <!-- Standard icon -->
+                <button id="btnWOList_MassStatus5COM" label="Mass Status 5COM (IW38)" onAction="R_Z_PMO_IW38_5COM" imageMso="ReviewAcceptChange" /> <!-- Standard icon -->
+                <button id="btnWOList_MassStatusGeneric" label="Mass Change: Status (IW38)" onAction="R_Z_PMO_IW38_User_Status_mass_Change" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepWOMassChange2"/>
+                <button id="btnWOList_ChangeDate" label="Mass Change: Date (IW38)" onAction="R_Z_PMO_IW38_ChangeDate" imageMso="ReviewAcceptChange" />
+                <button id="btnWOList_PrintOrders" label="Mass Print Orders (/PROGROUP/PPM)" onAction="R_Z_PMO_Print_Orders" imageMso="FilePrint" />
+                <menuSeparator id="sepWOMassChange3"/>
+                <button id="btnWOList_MassConfirm" label="Mass Confirmations (IW38)" onAction="R_Z_PMO_Mass_Confirmations" imageMso="ReviewAcceptChange" /> <!-- Standard icon -->
+                <button id="btnWOList_CancelConfirm" label="Mass Cancel Confirmations (IW45)" onAction="R_Z_PMO_Cancel_Confirmations" imageMso="Cancel" />
+                <menuSeparator id="sepWOMassChange4"/>
+                <button id="btnWOList_GanttScheduler" label="Scheduler Gantt (/PGP/SCHEDULER)" onAction="R_Z_PMO_SCHEDULER" imageMso="SmartArtInsert" />
+          </menu>
+
+          <separator id="sepPM1" />
+
+          <!-- Menu pour un Avis de maintenance unique -->
+          <menu id="menuNotifSingle" label="Notification" size="large" imageMso="NewTaskRequest2">
+            <button id="btnNotif_IW23_Main" label="Display: Main (IW23)" onAction="R_Z_IW23NotM" imageMso="FileFind" />
+            <button id="btnNotif_IW22_Main" label="Change: Main (IW22)" onAction="R_Z_IW22NotM" imageMso="ReviewAcceptChange" />
+            <menuSeparator id="sepNotifSingle1"/>
+            <button id="btnNotif_IW23_Sum" label="Display: Summary (IW23)" onAction="R_Z_IW23NotSum" imageMso="FileFind" />
+            <button id="btnNotif_IW23_Loc" label="Display: Location (IW23)" onAction="R_Z_IW23NotLoc" imageMso="FileFind" />
+            <menuSeparator id="sepNotifDetails1"/>
+            <button id="btnNotif_IW23_Mul" label="Display: Extended Data (IW23)" onAction="R_Z_IW23NotMul" imageMso="FileFind" />
+            <button id="btnNotif_IW23_Log" label="Display: Change Log (IW23)" onAction="R_Z_IW23NotLog" imageMso="SourceControlShowHistory" />
+            <menuSeparator id="sepNotifDetails2"/>
+            <button id="btnNotif_IW30_Single" label="Multilevel (IW30)" onAction="R_Z_PMO_IW30_Single" imageMso="DiagramTargetInsert" />
+          </menu>
+
+          <!-- Menu pour une liste d'Avis de maintenance -->
+          <menu id="menuNotifList" label="Notification List" size="large" imageMso="NewMeetingRequestNumbered">
+            <button id="btnNotifList_IW29_Open" label="Display: Open Notif. List (IW29)" onAction="R_Z_IW29Open" imageMso="FileFind" />
+            <button id="btnNotifList_IW29_Closed" label="Display: Closed Notif. List (IW29)" onAction="R_Z_IW29Closed" imageMso="SourceControlShowHistory" />
+            <button id="btnNotifList_IW28_Open" label="Change: Open Notif. List (IW28)" onAction="R_Z_IW28Open" imageMso="ReviewAcceptChange" />
+            <menuSeparator id="sepNotifList1"/>
+            <button id="btnNotifList_IW30" label="Multilevel List (IW30)" onAction="R_Z_PMO_IW30" imageMso="MailMergeGoToPreviousRecord" />
+            <menuSeparator id="sepNotifList2"/>
+            <button id="btnNotifList_IW39_Open" label="Display: Open WO from Notif. (IW39)" onAction="R_Z_IW39NOpen" imageMso="FileFind" />
+            <button id="btnNotifList_IW39_Closed" label="Display: Closed WO from Notif. (IW39H)" onAction="R_Z_IW39NClosed" imageMso="SourceControlShowHistory" />
+            <button id="btnNotifList_IW38_Open" label="Change: Open WO from Notif. (IW38)" onAction="R_Z_IW38NOpen" imageMso="ReviewAcceptChange" />
+            <menuSeparator id="sepNotifList3"/>
+            <button id="btnNotifList_IWBK" label="Avail. Compo. from Notif. (IWBK)" onAction="R_Z_IWBKN" imageMso="ObjectsGroup" />
+            <button id="btnNotifList_IW49N" label="Display: Operations from Notif. (IW49N)" onAction="R_Z_IW49NN" imageMso="FileFind" />
+          </menu>
+        </group>
+
+        <!-- 
+          Groupe : Achats (Procure-to-Pay)
+          Description : Contient les actions liées aux commandes d'achat (PO), demandes d'achat (PR) et articles (Material).
+        -->
+        <group id="grpP2P" label="SAP P2P">
+          
+          <!-- Menu pour une Commande d'Achat unique -->
+          <menu id="menuPOSingle" label="PO" size="large" imageMso="AccountingFormat">
+            <button id="btnPO_Display_ME23" label="Display: PO (ME23)" onAction="R_Z_ME23M" imageMso="FileFind" />
+            <button id="btnPO_Display_ME23N" label="Display: PO (ME23N)" onAction="R_Z_ME23NM" imageMso="FileFind" />
+            <menuSeparator id="sepPOSingle1"/>
+            <button id="btnPO_Info_ME80FN" label="Display: Info (ME80FN)" onAction="R_Z_ME80FNM" imageMso="Info" />
+            <button id="btnPO_Dunning_ME91F" label="Dunning Messages (ME91F)" onAction="R_Z_ME91FM" imageMso="MailMergeGoToNextRecord" />
+            <button id="btnPO_List_ME2N" label="PO List by PO (ME2N)" onAction="R_Z_ME2NM" imageMso="TableSelect" />
+          </menu>
+
+          <!-- Menu pour une liste de Commandes d'Achat -->
+          <menu id="menuPOList" label="PO List" size="large" imageMso="Copy">
+            <button id="btnPOList_General" label="PO List (ME2N)" onAction="R_Z_ME2NML" imageMso="FileFind" />
+            <button id="btnPOList_Info_ME80FN" label="Info List (ME80FN)" onAction="R_Z_ME80FNML" imageMso="Info" />
+            <button id="btnPOList_Dunning_ME91F" label="Dunning List (ME91F)" onAction="R_Z_ME91FML" imageMso="MailMergeGoToNextRecord" />
+          </menu>
+
+          <separator id="sepP2P1" />
+
+          <!-- Menu pour une Demande d'Achat unique -->
+          <menu id="menuReqSingle" label="PR" size="large" imageMso="SharingOpenWssTaskList">
+            <button id="btnReq_Display_ME53" label="Display: PR (ME53)" onAction="R_Z_ME53M" imageMso="FileFind" />
+            <button id="btnReq_Display_ME53N" label="Display: PR (ME53N)" onAction="R_Z_ME53NM" imageMso="FileFind" />
+            <button id="btnReq_List_ME5A" label="PR List by PR (ME5A)" onAction="R_Z_ME5AReq" imageMso="TableSelect" />
+          </menu>
+
+          <!-- Menu pour une liste de Demandes d'Achat -->
+          <menu id="menuReqList" label="PR List" size="large" imageMso="AddOrRemoveAttendees">
+            <button id="btnReqList_General" label="PR List (ME5A)" onAction="R_Z_ME5AReqL" imageMso="FileFind" />
+          </menu>
+
+          <separator id="sepP2P2" />
+
+          <!-- Menu pour un Article unique -->
+          <menu id="menuMatSingle" label="Material" size="large" imageMso="ShapeSeal24">
+            <button id="btnMat_Stock" label="Stock Overview (MMBE)" onAction="R_stock" imageMso="PivotTableReport" />
+            <button id="btnMat_matmov" label="Stock Movements (MB51)" onAction="R_matmov" imageMso="MailMergeGoToNextRecord" />
+            <menuSeparator id="sepMatSingle1"/>
+            
+                <button id="btnMat_BasicData" label="Basic Data" onAction="R_basdata" imageMso="PropertySheet" />
+                <button id="btnMat_lt" label="Technical Sheet" onAction="R_matlt" imageMso="FileNew" />
+                <button id="btnMat_cons" label="Consumption" onAction="R_matcons" imageMso="ChartInsert" />
+                <button id="btnMat_mrpe1" label="MRP 1" onAction="R_mrpe1" imageMso="CalendarInsert" />
+                <button id="btnMat_docdata" label="Documents" onAction="R_docdata" imageMso="MailMergeResultsPreview" />
+                <button id="btnMat_matmb52" label="Stock by Warehouse (MB52)" onAction="R_matmb52" imageMso="PivotTableReport" />
+                <button id="btnMat_maatreservations" label="Reservations (MB24)" onAction="R_maatreservations" imageMso="SharingOpenWssTaskList" />
+                <button id="btnMat_matnotes" label="Batch Stocks (MB53)" onAction="R_matnotes" imageMso="Note" />
+                <menuSeparator id="sepMatAnalysis1"/>
+                <button id="btnMat_Orders" label="PO Orders (ME2N)" onAction="R_matOrders" imageMso="TableSelect" />
+                <button id="btnMat_mattied" label="Display: Structure (CC04)" onAction="R_mattied" imageMso="SmartArtInsert" />
+                <button id="btnMat_mattiedcs" label="Where-Used List (CS15)" onAction="R_mattiedcs" imageMso="FileFind" />
+                <menuSeparator id="sepMatStruct1"/>
+                <button id="btnMat_IW39Mat" label="Display: Maint. Open WO (IW39)" onAction="R_IW39Mat" imageMso="FileFind" />
+                <button id="btnMat_IW38Mat" label="Change: Open WO (IW38)" onAction="R_IW38Mat" imageMso="ReviewAcceptChange" />
+                <button id="btnMat_IWBKmat" label="Display: Maint. History (IWBK)" onAction="R_IWBKmat" imageMso="SourceControlShowHistory" />
+          </menu>
+
+          <!-- Menu pour une liste d'Articles -->
+          <menu id="menuMatList" label="Material List" size="large" imageMso="TableSelect">
+            <button id="btnMatList_Stock" label="Stock List (MB52)" onAction="R_matmb52L" imageMso="PivotTableReport" />
+            <button id="btnMatList_Movements" label="Movements List (MB51)" onAction="R_matmovL" imageMso="MailMergeGoToNextRecord" />
+            <menuSeparator id="sepMatList1"/>
+            <button id="btnMatList_matOrdersL" label="PO Orders List (ME2N)" onAction="R_matOrdersL" imageMso="TableSelect" />
+            <button id="btnMatList_maatreservationsL" label="Reservations List (MB24)" onAction="R_maatreservationsL" imageMso="SharingOpenWssTaskList" />
+            <menuSeparator id="sepMatList2"/>
+            <button id="btnMatList_IW39MatL" label="Display: Maint. Open WO List (IW39)" onAction="R_IW39MatL" imageMso="FileFind" />
+            <button id="btnMatList_IW38MatL" label="Change: Open WO List (IW38)" onAction="R_IW38MatL" imageMso="ReviewAcceptChange" />
+            <button id="btnMatList_IWBKmatL" label="Display: Maint. History List (IWBK)" onAction="R_IWBKmatL" imageMso="SourceControlShowHistory" />
+          </menu>
+        </group>
+
+        <!-- 
+          Groupe : PMRs (Plans de Maintenance)
+          Description : Actions liées aux plans de maintenance préventive (PMRs) et à leurs postes (Items).
+        -->
+        <group id="grpPMRs" label="PMRs">
+            
+            <!-- Menu pour un Plan de Maintenance unique -->
+            <menu id="menuPlanSingle" label="PMR" size="large" imageMso="CalendarInsert">
+                <button id="btnPlan_Display" label="Display: Plan (IP03)" onAction="R_displayPLanM" imageMso="FileFind" />
+                <button id="btnPlan_Change" label="Change: Plan (IP02)" onAction="R_ChangePLan" imageMso="ReviewAcceptChange" />
+                <button id="btnPlan_ChangeTL" label="Change: Task List (IP02)" onAction="R_changeTLgivenPlan" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepPlanSingle1"/>
+                <button id="btnPlan_DisplayOps" label="Operations (IP03)" onAction="R_displayPLanOP" imageMso="TableDesign" />
+                <button id="btnPlan_DisplayCalls" label="Calls (IP03)" onAction="R_displayPLanCalls" imageMso="Call" />
+                <menuSeparator id="sepPlanSingle2"/>
+                <button id="btnPlan_CallHistory" label="Calls History (IP03)" onAction="R_callH" imageMso="SourceControlShowHistory" />
+                <button id="btnPlan_LastCall" label="Last Call (IP03)" onAction="R_lastcall" imageMso="MailMergeGoToNextRecord" />
+                <button id="btnPlan_Enhancements" label="Enhancements (IP03)" onAction="R_enh" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepPlanSingle3"/>
+                <button id="btnPlan_IP24" label="Display: Calls History (IP24)" onAction="R_IP24plan" imageMso="FileFind" />
+                <button id="btnPlan_History" label="Display: Closed WO (IW39H)" onAction="R_pmohistplan" imageMso="SourceControlShowHistory" />
+                <menuSeparator id="sepPlanSingle_Item"/>
+                <button id="btnItem_Display" label="Display: Item (IP06)" onAction="R_Z_IP06I" imageMso="Note" />
+            </menu>
+ 
+            <!-- Menu pour une liste de Plans de Maintenance -->
+            <menu id="menuPlanList" label="PMR List" size="large" imageMso="PivotTableListFormulas">
+               <button id="btnPlanList_Display" label="Plan List (IP16)" onAction="R_ip16_L" imageMso="FileFind" />
+               <button id="btnPlanList_DisplayCalls" label="Calls (IP24)" onAction="R_ip24_L" imageMso="Call" />
+               <button id="btnPlanList_ManualCall" label="Manual Call (IP10)" onAction="R_Manual_Call_PMRs" imageMso="Call" />
+               <button id="btnPlanList_Schedule" label="Schedule Plans (IP30)" onAction="R_Planification_PMRs" imageMso="PublishToWss" />
+               <button id="btnPlanList_DisplayTree" label="Display: PMR Tree (ZPM004)" onAction="R_Afficher_Arbo_PMR" imageMso="SmartArtInsert" />
+               <menuSeparator id="sepPlanList1"/>
+                  <button id="btnPlanList_OrderList" label="Display: Open WO List (IW39)" onAction="R_Z_IW39OL" imageMso="MultiplePages" />
+                  <button id="btnPlanList_OrderHistory" label="Display: Close WO List (IW39H)" onAction="R_pmohistplanL" imageMso="SourceControlShowHistory" />
+                  <button id="btnPlanList_ChangeOrders" label="Change: Open WO List (IW38)" onAction="R_Z_IW38OL" imageMso="ReviewAcceptChange" />
+                  <button id="btnPlanList_ChangeStartCycle" label="Change: Start Cycle (IP10)" onAction="R_Change_StartCycle_PMRs" imageMso="CalendarInsert" />
+                  <button id="btnPlanList_Start" label="Change: Start Plans (IP10)" onAction="R_Start_PMRs" imageMso="Play" />
+                  <button id="btnPlanList_NewStart" label="New Start Plans (IP10)" onAction="R_NewStart_PMRs" imageMso="Repeat" />
+                  <button id="btnPlanList_Strategy1W" label="Set to 1 Week (IP02)" onAction="R_MP_Auto_1W" />
+                  <button id="btnPlanList_Strategy1M" label="Set to 1 Month (IP02)" onAction="R_MP_Auto_1M" />
+                  <button id="btnPlanList_Strategy13W" label="Set to 13 Weeks (IP02)" onAction="R_MP_Auto_13W" />
+                  <button id="btnPlanList_Strategy1Y" label="Set to 1 Year (IP02)" onAction="R_MP_Auto_1Y" />
+               <menuSeparator id="sepPlanList_Items"/>
+                    <button id="btnItemList_Display" label="Item List (IP18)" onAction="R_Z_IP18LI" imageMso="FileFind" />
+                    <button id="btnItemList_DisplayCalls" label="Item Calls (IP24)" onAction="R_IP24_LI" imageMso="Call" />
+                    <menuSeparator id="sepItemList1"/>
+                    <button id="btnItemList_OrderList" label="Display: Open WO List (IW39)" onAction="R_Z_IW39OLI" imageMso="MultiplePages" />
+                    <button id="btnItemList_OrderHistory" label="Display: Close WO List (IW39H)" onAction="R_pmohistplanLI" imageMso="SourceControlShowHistory" />
+                    <button id="btnItemList_ChangeOrders" label="Change: Open WO List (IW38)" onAction="R_Z_IW38OLI" imageMso="ReviewAcceptChange" />
+            </menu>
+        </group>
+
+        <!-- 
+          Groupe : Données de Base (Master Data)
+          Description : Actions liées aux équipements (Equipment), postes techniques (Floc) et documents.
+        -->
+        <group id="grpMasterData" label="Master Data">
+            
+            <!-- Menu pour un Equipement unique -->
+            <menu id="menuMDSingle" label="Equipment" size="large" imageMso="Camera">
+                <button id="btnMDEQ_Display" label="Display: Equipment (IE03)" onAction="R_equipmentInfo" imageMso="FileFind" />
+                <button id="btnMDEQ_Characteristics" label="Display: Characteristics" onAction="R_eqchars" imageMso="FileFind" />
+                <button id="btnMDEQ_BOM_Display" label="Display: BOM (IE03)" onAction="R_equipmentBOM" imageMso="DiagramTargetInsert" />
+                <menuSeparator id="sepMDSingle1"/>
+                <button id="btnMDEQ_Orders" label="Display:  Open WO (IW39)" onAction="R_equipmentPMO" imageMso="FileFind" />
+                <button id="btnMDEQ_OrdersHistory" label="Display: Closed WO (IW39H)" onAction="R_equipmentPMO_H" imageMso="SourceControlShowHistory" />
+                <button id="btnMDEQ_OrdersChange" label="Change:  Open WO (IW38)" onAction="R_equipmentPMOc" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDSingle2"/>
+                <button id="btnMDEQ_Notifs" label="Display:  Open Notif. (IW29)" onAction="R_equipmentNotif" imageMso="FileFind" />
+                <button id="btnMDEQ_NotifsHistory" label="Display:  Closed Notifs (IW29)" onAction="R_equipmentNotifH" imageMso="SourceControlShowHistory" />
+                <button id="btnMDEQ_NotifsChange" label="Change: Notif. (IW28)" onAction="R_equipmentNotifc" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDSingle3"/>
+                <button id="btnMDEQ_Plans" label="Display: Plans (IP18)" onAction="R_equipmentplan" imageMso="FileFind" />
+                <button id="btnMDEQ_PlanCalls" label="Display: Calls (IP24)" onAction="R_equipmentplan24" imageMso="Call" />
+                <menuSeparator id="sepMDSingle4"/>
+                    <button id="btnMDEQ_BOM_Display_IB03" label="Display: BOM (IB03)" onAction="R_equipmentBOMIB03" imageMso="FileFind" />
+                    <button id="btnMDEQ_BOM_Change_IB02" label="Change: BOM (IB02)" onAction="R_equipmentBOMIB02" imageMso="ReviewAcceptChange" />
+                    <button id="btnMDEQ_BOM_Create_IB01" label="Create: BOM (IB01)" onAction="R_equipmentBOMIB01" imageMso="AddInManager" />
+                    <button id="btnMDEQ_TL_Display_IA03" label="Display: Task List (IA03)" onAction="R_equipmentIA03" imageMso="FileFind" />
+                    <button id="btnMDEQ_TL_Change_IA02" label="Change: Task List (IA02)" onAction="R_equipmentIA02" imageMso="ReviewAcceptChange" />
+                    <button id="btnMDEQ_TL_Create_IA01" label="Create: Task List (IA01)" onAction="R_equipmentIA01" imageMso="AddInManager" />
+                <button id="btnMDEQ_TL_General_IA17" label="General Task Lists (IA17)" onAction="R_Z_IA17_E_G_Single" imageMso="Copy" />
+            </menu>
+            
+            <!-- Menu pour une liste d'Equipements -->
+            <menu id="menuMDList" label="Equip. List" size="large" imageMso="MultiplePages">
+                <button id="btnMDEQList_Display" label="Equipment List (IH08)" onAction="R_Z_IH08_E" imageMso="ReportLayout" />
+                <button id="btnMDEQList_Status" label="Multi-Level List (IE07)" onAction="R_Z_IE07_E" imageMso="DiagramTargetInsert" />
+                <menuSeparator id="sepMDList1"/>
+                <button id="btnMDEQList_Orders" label="Display:  Open WO List (IW39)" onAction="R_Z_IW39_E" imageMso="MultiplePages" />
+                <button id="btnMDEQList_OrdersHistory" label="Display:  Closed WO List (IW39H)" onAction="R_Z_IW39_EC" imageMso="SourceControlShowHistory" />
+                <button id="btnMDEQList_OrdersChange" label="Change: Open WO List (IW38)" onAction="R_Z_IW38_E" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDList2"/>
+                <button id="btnMDEQList_Notifs" label="Display:  Open Notifs List (IW29)" onAction="R_Z_IW29_E" imageMso="MultiplePages" />
+                <button id="btnMDEQList_NotifsHistory" label="Display:  Closed Notifs List (IW29)" onAction="R_Z_IW29_EC" imageMso="SourceControlShowHistory" />
+                <button id="btnMDEQList_NotifsChange" label="Change: Notifs List (IW28)" onAction="R_Z_IW28_E" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDList3"/>
+                <button id="btnMDEQList_Plans" label="Maint. Plans List (IP18)" onAction="R_Z_IP18_E" imageMso="CalendarInsert" />
+                <button id="btnMDEQList_PlanCalls" label="Maint. Calls List (IP24)" onAction="R_Z_IP24_E" imageMso="Call" />
+                <menuSeparator id="sepMDList4"/> 
+                <button id="btnMDEQList_TaskLists" label="Equip. Task Lists (IA17)" onAction="R_Z_IA17_E" imageMso="Copy" />
+                <button id="btnMDEQList_TaskLists_G" label="General Task Lists (IA17)" onAction="R_Z_IA17_E_G" imageMso="Copy" />
+            </menu>
+ 
+            <separator id="sepMD1" />
+
+            <!-- Menu pour un Poste Technique (Floc) unique -->
+            <menu id="menuFLOCSingle" label="Floc" size="large" imageMso="Pushpin">
+                <button id="btnMDFL_Display" label="Display: Floc (IL03)" onAction="R_Z_FLOC_IL03" imageMso="FileFind" />
+                <button id="btnMDFL_Characteristics" label="Display: Characteristics" onAction="R_Z_FLOC_IL03_c" imageMso="FileFind" />
+                <button id="btnMDFL_Structure" label="Display: Structure/BOM" onAction="R_Z_FLOC_IL03_B" imageMso="DiagramTargetInsert" />
+                <menuSeparator id="sepMDFLSingle1"/>
+                <button id="btnMDFL_Orders" label="Display:  Open WO (IW39)" onAction="R_flocPMO" imageMso="FileFind" />
+                <button id="btnMDFL_OrdersHistory" label="Display: Closed WO (IW39H)" onAction="R_flocPMO_H" imageMso="SourceControlShowHistory" />
+                <button id="btnMDFL_OrdersChange" label="Change:  Open WO (IW38)" onAction="R_flocPMOc" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDFLSingle2"/>
+                <button id="btnMDFL_Notifs" label="Display:  Open Notif. (IW29)" onAction="R_flocNotif" imageMso="FileFind" />
+                <button id="btnMDFL_NotifsHistory" label="Display: Closed Notifs (IW29)" onAction="R_flocNotifH" imageMso="SourceControlShowHistory" />
+                <button id="btnMDFL_NotifsChange" label="Change: Notif. (IW28)" onAction="R_flocNotifc" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDFLSingle3"/>
+                <button id="btnMDFL_Plans" label="Display: Plans (IP18)" onAction="R_flocplan" imageMso="FileFind" />
+                <button id="btnMDFL_PlanCalls" label="Display: Calls (IP24)" onAction="R_flocplan24" imageMso="Call" />
+                <menuSeparator id="sepMDFLSingle4"/>
+                    <button id="btnMDFL_BOM_Display_IB03" label="Display: BOM (IB03)" onAction="R_FLOCBOMIB03" imageMso="FileFind" />
+                    <button id="btnMDFL_BOM_Change_IB02" label="Change: BOM (IB02)" onAction="R_floCBOMIB02" imageMso="ReviewAcceptChange" />
+                    <button id="btnMDFL_BOM_Create_IB01" label="Create: BOM (IB01)" onAction="R_flocOMIB01" imageMso="AddInManager" />
+                    <button id="btnMDFL_TL_Display_IA13" label="Display: Task List (IA13)" onAction="R_flocIA13" imageMso="FileFind" />
+                    <button id="btnMDFL_TL_Change_IA12" label="Change: Task List (IA12)" onAction="R_flocIA12" imageMso="ReviewAcceptChange" />
+                    <button id="btnMDFL_TL_Create_IA11" label="Create: Task List (IA11)" onAction="R_flocIA11" imageMso="AddInManager" />
+            </menu>
+            
+            <!-- Menu pour une liste de Postes Techniques (Flocs) -->
+            <menu id="menuFLOCList" label="Floc List" size="large" imageMso="WordCountList">
+                <button id="btnMDFLList_Structure" label="Structural Display (IH01)" onAction="R_IH01" imageMso="DiagramTargetInsert" />
+                <button id="btnMDFLList_Display_IH06" label="Floc List (IH06)" onAction="R_Z_IH06_F" imageMso="FileFind" />
+                <button id="btnMDFLList_Display_IH08" label="Floc List (IH08)" onAction="R_Z_IH08_F" imageMso="ReportLayout" />
+                <button id="btnMDFLList_Status" label="Status List (IL07)" onAction="R_Z_IL07_F" imageMso="TrafficLight" />
+                <menuSeparator id="sepMDFLList1"/>
+                <button id="btnMDFLList_Orders" label="Display:  Open WO List (IW39)" onAction="R_Z_IW39_F" imageMso="MultiplePages" />
+                <button id="btnMDFLList_OrdersHistory" label="Display:  Closed WO List (IW39H)" onAction="R_Z_IW39_FC" imageMso="SourceControlShowHistory" />
+                <button id="btnMDFLList_OrdersChange" label="Change: Open WO List (IW38)" onAction="R_Z_IW38_F" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDFLList2"/>
+                <button id="btnMDFLList_Notifs" label="Display:  Open Notifs List (IW29)" onAction="R_Z_IW29_F" imageMso="MultiplePages" />
+                <button id="btnMDFLList_NotifsHistory" label="Display:  Closed Notifs List (IW29)" onAction="R_Z_IW29_FC" imageMso="SourceControlShowHistory" />
+                <button id="btnMDFLList_NotifsChange" label="Change: Notifs List (IW28)" onAction="R_Z_IW28_F" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepMDFLList3"/>
+                <button id="btnMDFLList_Plans" label="Maint. Plans List (IP18)" onAction="R_Z_IP18_F" imageMso="CalendarInsert" />
+                <button id="btnMDFLList_PlanCalls" label="Maint. Calls List (IP24)" onAction="R_Z_IP24_F" imageMso="Call" />
+                <menuSeparator id="sepMDFLList4"/>
+                <button id="btnMDFLList_TaskLists" label="Floc Task Lists (IA17)" onAction="R_Z_IA17_F" imageMso="Copy" />
+                <button id="btnMDFLList_TaskLists_G" label="General Task Lists (IA17)" onAction="R_Z_IA17_F_G" imageMso="Copy" />
+            </menu>
+
+            <separator id="sepMD2" />
+
+            <!-- Menu pour la gestion des Documents -->
+            <menu id="menuDocument" label="Document" size="large" imageMso="MailMergeResultsPreview">
+                <button id="btnDoc_Display" label="Display: Document (CV03N)" onAction="R_Z_CV03NDoc" imageMso="FileFind" />
+                <button id="btnDoc_Change" label="Change: Document (CV02N)" onAction="R_Z_CV02NDoc" imageMso="ReviewAcceptChange" />
+                <menuSeparator id="sepDoc1"/>
+                <button id="btnDoc_Find" label="Find Document (CV04N)" onAction="R_Z_CV04NDoc" imageMso="Search" />
+                <button id="btnDocList_Find" label="Find Document List (CV04N)" onAction="R_Z_CV04NDocL" imageMso="FindDialog" />
+            </menu>
+        </group>
+
+        <!-- 
+          Groupe : Capex (Projets d'Investissement)
+          Description : Actions liées aux projets (Projects), réseaux (Networks) et éléments WBS (Work Breakdown Structure).
+        -->
+        <group id="grpCapex" label="Capex">
+            
+            <!-- Menu pour les listes de Projets -->
+            <menu id="menuProjectList" label="Projects" size="large" imageMso="MicrosoftProject">
+                <button id="btnProjList_Structure" label="Structure List (CN42N)" onAction="R_Z_CN42NProjL" imageMso="DiagramTargetInsert" />
+                <button id="btnProjList_Hierarchy" label="Hierarchy List (CN43N)" onAction="R_Z_CN43NProjL" imageMso="DiagramOrgChartInsert" />
+                <button id="btnProjList_Costs" label="Cost Summary List (CNS41)" onAction="R_Z_CNS41ProjL" imageMso="PivotTableReport" />
+                <menuSeparator id="sepProjList1"/>
+                <button id="btnProjList_NetOverview" label="Network Overview (CN46N)" onAction="R_Z_CN46NProjL" imageMso="FileFind" />
+                <button id="btnProjList_NetList" label="Network List (CN47)" onAction="R_Z_CN47ProjL" imageMso="TableSelect" />
+                <button id="btnProjList_NetListNew" label="Network List (CN47N)" onAction="R_Z_CN47NProjL" imageMso="TableSelect" />
+                <button id="btnProjList_NetDetails" label="Network Details (CN48N)" onAction="R_Z_CN48NProjL" imageMso="ZoomPrintPreviewExcel" />
+            </menu>
+            <separator id="sepCapex1" />
+            
+            <!-- Menu pour les listes de Réseaux -->
+            <menu id="menuNetList" label="Networks" size="large" imageMso="ShapeLightningBolt">
+                <button id="btnNetList_Overview" label="Overview List (CN46N)" onAction="R_Z_CN46NNetL" imageMso="FileFind" />
+                <button id="btnNetList_Components" label="Component Summary (CNS41)" onAction="R_Z_CNS41NetL" imageMso="ObjectsGroup" />
+                <menuSeparator id="sepNetList1"/>
+                <button id="btnNetList_Activities" label="Activity List (CN47)" onAction="R_Z_CN47NetL" imageMso="TableSelect" />
+                <button id="btnNetList_ActivitiesNew" label="Activity List (CN47N)" onAction="R_Z_CN47NNetL" imageMso="TableSelect" />
+                <menuSeparator id="sepNetList2"/>
+                <button id="btnNetList_CompTrack" label="Component Tracking (CN48N)" onAction="R_Z_CN48NNetL" imageMso="ZoomPrintPreviewExcel" />
+                <button id="btnNetList_PR" label="Purchase Requisitions (ME5A)" onAction="R_Z_ME5ANetL" imageMso="SharingOpenWssTaskList" />
+            </menu>
+            <separator id="sepCapex2" />
+            
+            <!-- Menu pour les listes d'éléments WBS -->
+            <menu id="menuWBSList" label="WBS" size="large" imageMso="ShapeIsoscelesTriangle">
+                <button id="btnWBSList_Hierarchy" label="Hierarchy List (CN43N)" onAction="R_Z_CN43N_WBSL" imageMso="DiagramOrgChartInsert" />
+                <button id="btnWBSList_Overview" label="Network Overview (CN46N)" onAction="R_Z_CN46N_WBSL" imageMso="FileFind" />
+                <menuSeparator id="sepWBSList1"/>
+                <button id="btnWBSList_Activities" label="Activity List (CN47)" onAction="R_Z_CN47_WBSL" imageMso="TableSelect" />
+                <button id="btnWBSList_ActivitiesNew" label="Activity List (CN47N)" onAction="R_Z_CN47N_WBSL" imageMso="TableSelect" />
+                <menuSeparator id="sepWBSList2"/>
+                <button id="btnWBSList_Components" label="Component Summary (CNS41)" onAction="R_Z_CNS41_WBSL" imageMso="ObjectsGroup" />
+                <button id="btnWBSList_CompTrack" label="Component Tracking (CN48N)" onAction="R_Z_CN48N_WBSL" imageMso="ZoomPrintPreviewExcel" />
+                <menuSeparator id="sepWBSList3"/>
+                <button id="btnWBSList_PR" label="Purchase Requisitions (ME5A)" onAction="R_Z_ME5A_WBSL" imageMso="SharingOpenWssTaskList" />
+                <button id="btnWBSList_WO" label="Work Orders (IW38)" onAction="R_Z_IW38_WBSL" imageMso="Paste" />
+            </menu>
+        </group>
+
+        <!-- 
+          Groupe : Configuration
+          Description : Affiche/masque la feuille de configuration et fournit des liens de support et d'information.
+        -->
+        <group id="grpSetup" label="Setup">
+          <button id="btnShowSetup" label="Show Setup" size="large" onAction="showsetup" imageMso="OutlineShowDetail" />
+          <button id="btnHideSetup" label="Hide Setup" size="large" onAction="hidesetups" imageMso="OutlineHideDetail" />
+
+
+          <separator id="sepSetup2" />
+          <button id="techsupbtn" label="Technical Support" size="large" onAction="techsup" imageMso="TechnicalSupport" />
+          <button id="Aboutpbtn" label="About" size="large" onAction="Aboutp" imageMso="Info" />
+        </group>
+
+      </tab>
+
+      <!-- ============================================================================================= -->
+      <!-- =============================== ONGLET 2 : Tableaux de Bord KPI ============================= -->
+      <!-- ============================================================================================= -->
+      <tab id="kpiTab" label="Week KPIs" getVisible="GetTabVisibility">
+
+        <!-- 
+          Groupe : Session SAP (Copie pour KPI)
+        -->
+        <group id="grpSession_KPI" label="SAP Session">
+          <button id="btnLogON_KPI" label="Log ON" size="large" onAction="LogON" imageMso="RightArrow2" />
+          <button id="btnLogOFF_KPI" label="Log OFF (All)" size="large" onAction="LogOFF" imageMso="FileExit" />
+          
+          <separator id="sepSession1_KPI"/>
+          
+            <box id="boxSessionSelection_KPI" boxStyle="vertical">
+                <labelControl id="lblSelectSession_KPI" label="Select SAP Session" />
+                <comboBox id="cmbSessions_KPI" showLabel="false" onChange="OnSessionChange" getItemCount="GetSessionCount" getItemLabel="GetSessionLabel" showItemImage="false" sizeString="XXXXXXXXXXXX" />
+                <buttonGroup id="bgSessionActions_KPI">
+                    <button id="btnNewSession_KPI" label="New" onAction="NewSAPSession" imageMso="WindowNew" />
+                    <button id="btnCloseSession_KPI" label="Close" onAction="CloseSelectedSession" imageMso="WindowClose" />
+                </buttonGroup>
+            </box>
+        </group>
+
+        <!-- 
+          Groupe : KPIs Opérationnels
+        -->
+        <group id="kpiOpr" label="Operations">
+            <button id="btn_Z_KPIs_List" label="Load KPI Data" size="large" onAction="R_Z_KPIs_List" imageMso="ImportExcel" />
+            <button id="kpi_btnConfirmed" label="Confirmed" size="large" onAction="KPIs_RefresheTCD_SCH" imageMso="ReviewAcceptChange" />
+            <separator id="sepKpiOpr1" />
+            <button id="kpi_btnScheduled" label="Scheduled" size="large" onAction="KPI_Accuracy" imageMso="ReviewAcceptChange" />
+            <button id="kpi_btnNoCompliance" label="No Compliance" size="large" onAction="KPI_Compliance" imageMso="DeclineInvitation" />
+            <button id="kpi_btnUnplanned" label="Unplanned" size="large" onAction="KPI_Unplanned" imageMso="SadFace" />
+            <button id="kpi_btnWorkLoad" label="Work Load" size="large" onAction="KPI_SCH_Ratio" imageMso="ChartInsert" />
+        </group>
+
+        <!-- 
+          Groupe : KPIs des Plans de Maintenance (PMRs)
+        -->
+        <group id="kpiPMRs" label="PMRs">
+            <button id="kpi_btnPMRPercent" label="PMR%" size="large" onAction="KPI_PMR_Percentage" imageMso="ChartInsert" />
+            <button id="kpi_btnPMRNotPerformed" label="Not Performed" size="large" onAction="KPI_PMR_NotPerformed" imageMso="CancelRequest" />
+            <button id="kpi_btnPMRManualCall" label="Manual Call" size="large" onAction="KPI_PMR_ManualCall" imageMso="Call" />
+        </group>
+            
+         <!-- 
+          Groupe : KPIs des Avis de Maintenance (MR)
+        -->
+         <group id="kpiMR" label="MR">         
+            <button id="kpi_btnMRWithoutMobile" label="MR Without Mobile" size="large" onAction="KPI_MR_no_Mobile" imageMso="Call" />
+            <button id="kpi_btnMRCPMwoMobile" label="MR CPM wo Mobile" size="large" onAction="KPI_CPM_NMobile" imageMso="Call" />
+            <button id="kpi_btnPMREfficiency" label="Efficiency" size="large" onAction="KPI_PMR_Efficiency" imageMso="HappyFace" />
+          </group>
+            
+          <!-- 
+            Groupe : KPIs de Planification
+          -->
+          <group id="kpiPlanning" label="Planning">
+            <button id="kpi_btnWoWithoutMR" label="Without MR" size="large" onAction="KPI_Wo_MR" imageMso="TraceError" />
+            <button id="kpi_btnAgingWo" label="Aging Wo" size="large" onAction="KPI_Aging_Wo" imageMso="SourceControlShowHistory" />
+            <button id="kpi_btnAgingMR" label="Aging MR" size="large" onAction="KPI_Aging_MR" imageMso="SourceControlShowHistory" />
+            <button id="kpi_btnOverdue" label="Overdue" size="large" onAction="KPI_Overdue" imageMso="SadFace" />
+          </group>
+              
+          <!-- 
+            Groupe : Gantt Week
+          -->
+          <group id="kpiGanttWeek" label="Gantt Week">
+              <button id="kpi_btnGanttLastWeek" label="Last Week" size="large" onAction="KPI_Gantt_LastWeek" imageMso="WebGoBack" />
+              <button id="kpi_btnGanttThisWeek" label="This Week" size="large" onAction="KPI_Gantt_ThisWeek" imageMso="Chart3DBarChart" />
+              <button id="kpi_btnGanttNextWeek" label="Next Week" size="large" onAction="KPI_Gantt_NextWeek" imageMso="WebGoForward" />
+          </group>
+
+          <!-- 
+            Groupe : Gantt Month
+          -->
+          <group id="kpiGanttMonth" label="Gantt Month">
+              <button id="kpi_btnGanttLastMonth" label="Last Month ( PM02 )" size="large" onAction="KPI_Gantt_LastMonth" imageMso="MailMergeGoToPreviousRecord" />
+              <button id="kpi_btnGanttThisMonth" label="This Month ( PM02 )" size="large" onAction="KPI_Gantt_ThisMonth" imageMso="CalendarInsert" />
+              <button id="kpi_btnGanttNextMonth" label="Next Month ( PM02 )" size="large" onAction="KPI_Gantt_NextMonth" imageMso="MailMergeGoToNextRecord" />
+          </group>
+
+          <!-- 
+            Groupe : Gantt Year
+          -->
+          <group id="kpiGanttYear" label="Gantt Year">
+              <button id="kpi_btnGanttLastYear" label="Last Year ( PM02 )" size="large" onAction="KPI_Gantt_LastYear" imageMso="MailMergeGoToFirstRecord" />
+              <button id="kpi_btnGanttThisYear" label="This Year ( PM02 )" size="large" onAction="KPI_Gantt_ThisYear" imageMso="ChartAreaChart" />
+              <button id="kpi_btnGanttNextYear" label="Next Year ( PM02 )" size="large" onAction="KPI_Gantt_NextYear" imageMso="MailMergeGotToLastRecord" />
+          </group>
+
+      </tab>
+
+      <!-- ============================================================================================= -->
+      <!-- =============================== ONGLET 3 : Reporting & Dashboard ============================ -->
+      <!-- ============================================================================================= -->
+      <tab id="reportingTab" label="Reporting" getVisible="GetTabVisibility">
+        <group id="grpReportingFullLoad" >
+          <button id="btnLoadDashboard" label="Load All Dashboard Data" size="large" onAction="R_Load_data_Dashboard" imageMso="DataRefreshAll" />
+        </group>
+
+        <group id="grpReportingConfirmations" label="Confirmations">
+            <button id="btnSchedConfDash" label="Scheduled" onAction="R_Z_Schudled_Confirmation_File_Dash" imageMso="TableSelect" />
+            <button id="btnConfConfDash" label="Confirmed" onAction="R_Z_Confirmed_Confirmation_File_Dash" imageMso="ReviewAcceptChange" />
+            <button id="btnUnplanConfDash" label="Unplanned" onAction="R_Z_unplanned_Confirmation_File_Dash" imageMso="SadFace" />
+        </group>
+
+        <group id="grpReportingOperations" label="Operations">
+            <button id="btnSchedOpDash" label="Scheduled" onAction="R_Z_KPI_Schudled_Op_Dash" imageMso="TableSelect" />
+            <button id="btnSchedNoConfDash" label="Not Confirmed" onAction="R_Z_KPI_Schudled_non_Confirmed_Op_Dash" imageMso="DeclineInvitation" />
+            <button id="btnUnplanOpDash" label="Unplanned" onAction="R_Z_KPIs_Unplanned_Op_Dash" imageMso="SadFace" />
+            <button id="btnAccuracyDash" label="Accuracy" onAction="R_Z_KPI_Accuracy_Dash" imageMso="HappyFace" />
+            <button id="btnSchRatioDash" label="Schedule Ratio" onAction="R_Z_KPI_SchRatio_Dash" imageMso="ChartInsert" />
+            <button id="btnOverdueDash" label="Overdue" onAction="R_Z_KPI_Overdue_Dash" imageMso="SourceControlShowHistory" />
+        </group>
+
+        <group id="grpReportingPMRs" label="PMRs">
+            <button id="btnPMRsDash" label="PMRs" onAction="R_Z_KPIs_PMR_Dash" imageMso="CalendarInsert" />
+            <button id="btnPMRsNotPerfDash" label="Not Performed" onAction="R_Z_KPIs_PMR_not_Performed_Dash" imageMso="CancelRequest" />
+            <button id="btnPMRsManualDash" label="Manual Call" onAction="R_Z_KPIs_PMR_ManualCall_Dash" imageMso="Call" />
+        </group>
+
+        <group id="grpReportingMRWO" label="MR &amp; WO">
+            <button id="btnMRCreatedDash" label="MR Created" onAction="R_Z_KPI_MR_Created_Dash" imageMso="NewTaskRequest2" />
+            <button id="btnMRCreatedCPMDash" label="MR Crtd (CPM)" onAction="R_Z_KPI_MR_Created_CPM_Dash" imageMso="NewTaskRequest2" />
+            <button id="btnWoMRDash" label="Without MR" onAction="R_Z_KPI_Wo_MR_Dash" imageMso="TraceError" />
+            <button id="btnAgingWoDash" label="Aging WO" onAction="R_Z_KPI_AgingWo_Dash" imageMso="SourceControlShowHistory" />
+            <button id="btnAgingMRDash" label="Aging MR" onAction="R_Z_KPI_AgingMR_Dash" imageMso="SourceControlShowHistory" />
+            <button id="btnKPIsListDash" label="Load KPIs" onAction="R_Z_KPIs_List_Dash" imageMso="ImportExcel" />
+        </group>
+        
+        <group id="grpReportingOpenItems" label="Open Items">
+            <button id="btnOpenPMWODash" label="Open WO" onAction="R_Z_Load_Open_PMwo_Dash" imageMso="MultiplePages" />
+            <button id="btnOpenMRDash" label="Open MR." onAction="R_Z_KPI_Open_MR_Dash" imageMso="NewMeetingRequestNumbered" />
+        </group>
+
+        <group id="grpExportMain" >
+            <button id="btnExportAllReports" label="Export All Reports" size="large" onAction="R_Export_AllReports" imageMso="DataRefreshAll" />
+        </group>
+
+        <group id="grpExportPM" label="Export PM">
+            <button id="btnLoadMR" label="Load MR" onAction="R_Z_Load_MR" imageMso="NewTaskRequest2" />
+            <button id="btnLoadWO" label="Load WO" onAction="R_Z_Load_WO" imageMso="Paste" />
+            <button id="btnLoadOp" label="Load Op" onAction="R_Z_Load_Op" imageMso="TableDesign" />
+            <button id="btnLoadPMR" label="Load PMR" onAction="R_Z_Load_PMR" imageMso="CalendarInsert" />
+            <button id="btnLoadCNF" label="Load CNF" onAction="R_Z_Load_CNF" imageMso="ReviewAcceptChange" />
+            <button id="btnLoadKPI" label="Load KPI" onAction="R_Z_Load_KPI" imageMso="ImportExcel" />
+        </group>
+
+        <group id="grpExportSupply" label="Export Supply">
+            <button id="btnLoadPR" label="Load PR" onAction="R_Z_Load_PR" imageMso="SharingOpenWssTaskList" />
+            <button id="btnLoadPO" label="Load PO" onAction="R_Z_Load_PO" imageMso="AccountingFormat" />
+            <button id="btnLoadSES" label="Load SES" onAction="R_Z_Load_SES" imageMso="TableSelect" />
+            <button id="btnLoadGM" label="Load GM" onAction="R_Z_Load_GM" imageMso="MailMergeGoToNextRecord" />
+            <button id="btnLoadRSV" label="Load RSV" onAction="R_Z_Load_RSV" imageMso="SharingOpenWssTaskList" />
+        </group>
+
+        <!-- 
+          Groupe : Tests
+          Description : Lance la suite de tests automatisés.
+        -->
+        <group id="grpTests" label="Tests">
+          <button id="btnPopulateTests" label="Load Test Data" size="large" onAction="R_Populate_Test_Sheet" imageMso="TableDesign" />
+          <button id="btnToggleTestSheet" label="Show/Hide Test Sheet" size="large" onAction="R_ToggleTestSheet" imageMso="SheetTable" />
+          <menu id="menuRunTestsStatic" label="Run Tests" size="large" imageMso="MacroPlay">
+            <button id="btnRunAllProjectTestsMenu" label="Run All Project Tests" onAction="R_RunAllTests" imageMso="MacroPlay" />
+            <menuSeparator id="sepTestsStatic1"/>
+            <button id="btnRunAllWOTests" label="Test Work Orders" onAction="R_RunTestWorkOrder" imageMso="Paste" />
+            <button id="btnRunAllNotifTests" label="Test Notifications" onAction="R_RunTestNotification" imageMso="NewTaskRequest2" />
+            <button id="btnRunAllEquipTests" label="Test Equipments" onAction="R_RunTestEquipment" imageMso="Camera" />
+            <button id="btnRunAllFlocTests" label="Test Func. Locations" onAction="R_RunTestFuncLoc" imageMso="Pushpin" />
+            <button id="btnRunAllMPlanTests" label="Test Maint. Plans" onAction="R_RunTestMPlan" imageMso="CalendarInsert" />
+            <button id="btnRunAllMatTests" label="Test Materials" onAction="R_RunTestMaterials" imageMso="ShapeSeal24" />
+            <button id="btnRunAllPOTests" label="Test Purchase Orders" onAction="R_RunTestPurchOrder" imageMso="AccountingFormat" />
+            <button id="btnRunAllPRTests" label="Test Purchase Reqs" onAction="R_RunTestRequisition" imageMso="SharingOpenWssTaskList" />
+            <button id="btnRunAllDocTests" label="Test Documents" onAction="R_RunTestDocuments" imageMso="MailMergeResultsPreview" />
+            <button id="btnRunAllProjTests" label="Test Projects" onAction="R_RunTestProject" imageMso="MicrosoftProject" />
+            <button id="btnRunAllNetTests" label="Test Networks" onAction="R_RunTestNetwork" imageMso="ShapeLightningBolt" />
+            <button id="btnRunAllWBSTests" label="Test WBS" onAction="R_RunTestWBS" imageMso="ShapeIsoscelesTriangle" />
+          </menu>
+          <button id="btnOpenLogFile" label="Open Log File" size="large" onAction="R_OpenLogFile" imageMso="FileFind" />
+           <separator id="sepTests" />
+          <button id="btnReloadConfig" label="Reload Config" size="large" onAction="R_LoadConfiguration" imageMso="DataRefresh" />
+        </group>
+      </tab>
+
+    </tabs>
+  </ribbon>
+
+  <!-- ============================================================================================= -->
+  <!-- ===================== MENUS CONTEXTUELS (Actions sur Clic Droit) ============================ -->
+  <!-- ============================================================================================= -->
+  <contextMenus>
+      <!-- 
+        Menu contextuel qui apparaît sur un clic droit dans une cellule Excel.
+      -->
+      <contextMenu idMso="ContextMenuCell">
+      </contextMenu>
+  </contextMenus>
+
+</customUI>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SAP Operations Cockpit</title>
+
+<hta:application
+    applicationname="SapAutomator"
+    border="thin"
+    caption="yes"
+    showintaskbar="yes"
+    singleinstance="yes"
+    sysmenu="yes"
+    windowstate="maximized"
+    scroll="no"
+/>
+
+<style>
+/* ===== BASE ===== */
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Tahoma, Arial;
+    background: #EDEDED;
+    overflow: hidden;
+}
+
+/* ===== HEADER ===== */
+#header {
+    height: 40px;
+    background: #DADADA;
+    border-bottom: 1px solid #A0A0A0;
+    padding: 8px 12px;
+    font-weight: bold;
+    color: #0A6ED1;
+}
+
+/* ===== PLANT BAR ===== */
+#plantBar {
+    height: 32px;
+    background: #F2F2F2;
+    border-bottom: 1px solid #B5B5B5;
+    padding: 4px 10px;
+}
+
+#plantBar select {
+    height: 24px;
+    font-size: 12px;
+}
+
+/* ===== LAYOUT ===== */
+#container {
+    display: flex;
+    height: calc(100% - 104px);
+}
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+    width: 230px;
+    background: #F7F7F7;
+    border-right: 1px solid #B5B5B5;
+    overflow-y: auto;
+}
+
+.sidebar-tab {
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #D0D0D0;
+    font-weight: bold;
+    background: #E6E6E6;
+}
+
+.sidebar-tab.active {
+    background: #D0E2F3;
+    color: #0A6ED1;
+}
+
+.menu-section {
+    padding: 6px;
+    display: none;
+}
+
+.menu-title {
+    font-weight: bold;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.menu-buttons button {
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* ===== WORKSPACE ===== */
+#workspace {
+    flex: 1;
+    background: #F5F6F7; /* SAP GRID COLOR */
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== WORKSPACE TABS ===== */
+#workspaceTabs {
+    height: 32px;
+    background: #E0E0E0;
+    border-bottom: 1px solid #B5B5B5;
+    display: flex;
+}
+
+.workspace-tab {
+    padding: 6px 10px;
+    border-right: 1px solid #B5B5B5;
+    cursor: pointer;
+    background: #ECECEC;
+}
+
+.workspace-tab.active {
+    background: #FFFFFF;
+    font-weight: bold;
+}
+
+/* ===== WORKSPACE CONTENT ===== */
+#workspaceContent {
+    flex: 1;
+    padding: 10px;
+    overflow: auto;
+    background-image:
+        linear-gradient(#EAEAEA 1px, transparent 1px),
+        linear-gradient(90deg, #EAEAEA 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* ===== FOOTER ===== */
+#statusBar {
+    height: 32px;
+    background: #DADADA;
+    border-top: 1px solid #A0A0A0;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+</style>
+
+<script language="javascript">
+var currentSidebar = "PM";
+var tabCount = 0;
+
+function switchSidebar(tab) {
+    currentSidebar = tab;
+    var tabs = document.getElementsByClassName("sidebar-tab");
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].className = "sidebar-tab";
+    }
+    document.getElementById("tab_" + tab).className += " active";
+
+    var sections = document.getElementsByClassName("menu-section");
+    for (i = 0; i < sections.length; i++) {
+        sections[i].style.display = "none";
+    }
+    document.getElementById("menu_" + tab).style.display = "block";
+}
+
+function toggleSection(id) {
+    var el = document.getElementById(id);
+    el.style.display = (el.style.display == "none") ? "block" : "none";
+}
+
+function addWorkspaceTab(title, content) {
+    tabCount++;
+    var tabId = "wtab_" + tabCount;
+
+    var tab = document.createElement("div");
+    tab.className = "workspace-tab active";
+    tab.innerText = title;
+    tab.onclick = function() { activateTab(tabId); };
+    tab.id = tabId + "_btn";
+
+    var tabs = document.getElementsByClassName("workspace-tab");
+    for (var i = 0; i < tabs.length; i++) tabs[i].className = "workspace-tab";
+
+    document.getElementById("workspaceTabs").appendChild(tab);
+
+    var div = document.createElement("div");
+    div.id = tabId;
+    div.innerHTML = content;
+    div.style.display = "block";
+
+    var wc = document.getElementById("workspaceContent");
+    wc.innerHTML = "";
+    wc.appendChild(div);
+
+    updateStatus("Opened: " + title);
+}
+
+function activateTab(id) {
+    var tabs = document.getElementsByClassName("workspace-tab");
+    for (var i = 0; i < tabs.length; i++) tabs[i].className = "workspace-tab";
+
+    document.getElementById(id + "_btn").className += " active";
+}
+
+function loadFile(type) {
+    addWorkspaceTab(type, "<h3>" + type + " loaded</h3><p>File handling via ActiveX here</p>");
+}
+
+function updateStatus(msg) {
+    document.getElementById("statusText").innerText = msg;
+}
+</script>
+
+</head>
+
+<body onload="switchSidebar('PM')">
+
+<div id="header">SAP Operations Cockpit</div>
+
+<div id="plantBar">
+    Plant:
+    <select>
+        <option>1000</option>
+        <option>2000</option>
+        <option>3000</option>
+    </select>
+</div>
+
+<div id="container">
+
+    <div id="sidebar">
+        <div id="tab_PM" class="sidebar-tab" onclick="switchSidebar('PM')">PM</div>
+        <div id="tab_KPI" class="sidebar-tab" onclick="switchSidebar('KPI')">KPI</div>
+        <div id="tab_Reporting" class="sidebar-tab" onclick="switchSidebar('Reporting')">Reporting</div>
+
+        <!-- PM -->
+        <div id="menu_PM" class="menu-section">
+            <div class="menu-title" onclick="toggleSection('pm_orders')">Orders</div>
+            <div id="pm_orders" class="menu-buttons">
+                <button onclick="addWorkspaceTab('IW33','PM Order Display')">IW33</button>
+            </div>
+        </div>
+
+        <!-- KPI -->
+        <div id="menu_KPI" class="menu-section">
+            <button onclick="addWorkspaceTab('MTBF','MTBF KPI')">MTBF</button>
+        </div>
+
+        <!-- Reporting -->
+        <div id="menu_Reporting" class="menu-section">
+            <button onclick="loadFile('CSV')">Load CSV</button>
+            <button onclick="loadFile('EXCEL')">Load Excel</button>
+            <button onclick="loadFile('PNG')">Load PNG</button>
+            <button onclick="loadFile('JPEG')">Load JPEG</button>
+        </div>
+    </div>
+
+    <div id="workspace">
+        <div id="workspaceTabs"></div>
+        <div id="workspaceContent"></div>
+    </div>
+
+</div>
+
+<div id="statusBar">
+    <span id="statusText">Ready</span>
+</div>
+
+</body>
+</html>

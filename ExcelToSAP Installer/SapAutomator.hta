@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SAP Automatisation Portable</title>
+    <HTA:APPLICATION 
+        APPLICATIONNAME="SAPAuto" 
+        SCROLL="yes" 
+        SINGLEINSTANCE="yes"
+        WINDOWSTATE="maximize"
+    >
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .header { background-color: #354a5f; padding: 8px 20px; border-bottom: 4px solid #f0ab00; flex-shrink: 0; color: white; display: flex; align-items: center; }
+        .header-text h2 { margin: 0; color: white; font-size: 1.5em; border-bottom: none; padding-bottom: 0; }
+        .header-text p { margin: 2px 0 0; color: #dcebf5; font-size: 0.9em; }
+        #toggleBtn { font-size: 24px; cursor: pointer; margin-right: 10px; }
+        #toggleBtn:hover { color: #f0ab00; }
+        .main-body { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 300px; background-color: #2c3e50; color: white; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; border-right: 1px solid #ccc; transition: width 0.3s ease, padding 0.3s ease; }
+        .content { flex-grow: 1; padding: 20px; overflow-y: auto; background-color: #ffffff; }
+        
+        /* Tree View Styles */
+        ul { list-style-type: none; padding-left: 20px; margin: 0; }
+        li { margin: 5px 0; }
+        .group-title { font-weight: bold; cursor: pointer; padding: 8px; background-color: #34495e; border-radius: 4px; margin-bottom: 5px; display: block; border-left: 3px solid #007bff; }
+        .group-title:hover { background-color: #4e6a85; }
+        .menu-title { cursor: pointer; padding: 5px; color: #bdc3c7; display: block; }
+        .menu-title:hover { color: white; text-decoration: none; background-color: rgba(255,255,255,0.1); border-radius: 3px; }
+        .btn-action { cursor: pointer; padding: 4px 8px; color: #ecf0f1; display: block; font-size: 0.9em; border: none; background: none; text-align: left; width: 100%; }
+        .btn-action:hover { color: white; background-color: #007bff; border-radius: 3px; }
+        
+        .hidden { display: none; }
+        
+        h2 { color: #354a5f; border-bottom: 2px solid #354a5f; padding-bottom: 10px; }
+        #status { margin-top: 15px; padding: 10px; border: 1px solid #bce8f1; background: #d9edf7; color: #31708f; border-radius: 4px; }
+        
+        .caret { display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid white; margin-right: 5px; vertical-align: middle; }
+        .caret-right { border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 5px solid white; }
+    </style>
+
+    <script language="VBScript">
+        Dim SapGuiAuto, Application, Connection, Session
+
+        Sub Window_OnLoad
+            ' Initialisation au chargement
+        End Sub
+
+        Sub ToggleSidebar
+            Dim sidebar, sidebarContent
+            Set sidebar = document.getElementById("mainSidebar")
+            Set sidebarContent = document.getElementById("sidebarContent")
+
+            If sidebar.style.width = "0px" Then
+                sidebar.style.width = "300px"
+                sidebar.style.padding = "10px"
+                sidebarContent.style.display = "block"
+            Else
+                sidebar.style.width = "0px"
+                sidebar.style.padding = "0"
+                sidebarContent.style.display = "none"
+            End If
+        End Sub
+
+        Sub ToggleVisibility(id, caretId)
+            Dim elem, caret
+            Set elem = document.getElementById(id)
+            Set caret = document.getElementById(caretId)
+            
+            If elem.className = "hidden" Then
+                elem.className = ""
+                caret.className = "caret"
+            Else
+                elem.className = "hidden"
+                caret.className = "caret caret-right"
+            End If
+        End Sub
+
+        Sub RunTransaction(tcode)
+            On Error Resume Next
+            
+            ' Connexion SAP
+            Set SapGuiAuto = GetObject("SAPGUI")
+            If Err.Number <> 0 Then
+                document.getElementById("status").innerHTML = "Erreur : SAP GUI n'est pas ouvert."
+                Err.Clear
+                Exit Sub
+            End If
+
+            Set Application = SapGuiAuto.GetScriptingEngine
+            If Err.Number <> 0 Then
+                document.getElementById("status").innerHTML = "Erreur : Scripting desactive."
+                Err.Clear
+                Exit Sub
+            End If
+
+            If Application.Children.Count = 0 Then
+                document.getElementById("status").innerHTML = "Erreur : Aucune connexion SAP."
+                Exit Sub
+            End If
+            
+            Set Connection = Application.Children(0)
+            If Connection.Children.Count = 0 Then
+                document.getElementById("status").innerHTML = "Erreur : Aucune session SAP."
+                Exit Sub
+            End If
+            
+            Set Session = Connection.Children(0)
+
+            ' Execution
+            If tcode <> "" Then
+
+                'Session.findById("wnd[0]").maximize
+                Session.findById("wnd[0]/tbar[0]/okcd").text = "/n" & tcode
+                Session.findById("wnd[0]").sendVKey 0
+
+                document.getElementById("status").innerHTML = "Succes : Transaction " & tcode & " lancee."
+            Else
+                MsgBox "Action non implementee ou code transaction manquant."
+            End If
+            
+            Set Session = Nothing
+            Set Connection = Nothing
+            Set Application = Nothing
+            Set SapGuiAuto = Nothing
+        End Sub
+        
+        Sub RunAction(label)
+            ' Extraction du TCode entre parentheses si present
+            Dim regEx, matches
+            Set regEx = New RegExp
+            regEx.Pattern = "\(([A-Z0-9_/]+)\)"
+            regEx.IgnoreCase = True
+            
+            If regEx.Test(label) Then
+                Set matches = regEx.Execute(label)
+                RunTransaction matches(0).SubMatches(0)
+            Else
+                ' Actions specifiques sans TCode dans le label
+                Select Case label
+                    Case Else
+                        document.getElementById("status").innerHTML = "Action : " & label & " (Pas de TCode detecte)"
+                End Select
+            End If
+        End Sub
+    </script>
+</head>
+
+<body>
+    <div class="header">
+        <span id="toggleBtn" onclick="ToggleSidebar()">&#9776;</span>
+        <div class="header-text">
+            <h2>SAP Automator (Portable)</h2>
+            <p>Cet outil utilise la session SAP ouverte actuellement. Selectionnez une action dans le menu de gauche.</p>
+        </div>
+    </div>
+    <div class="main-body">
+    <div class="sidebar" id="mainSidebar">
+        <div id="sidebarContent">
+        <div style="font-size: 1.2em; margin-bottom: 10px; text-align: center;">Menu</div>
+        
+        <!-- Group: Plant Maintenance -->
+        <span class="group-title" onclick="ToggleVisibility 'grpPM', 'c3'"><span id="c3" class="caret"></span>Plant Maintenance</span>
+        <ul id="grpPM">
+            <!-- Menu: Work Order -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mWO', 'c31'"><span id="c31" class="caret caret-right"></span>Work Order</span>
+                <ul id="mWO" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Main (IW33)'">Display: Main (IW33)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Main (IW32)'">Change: Main (IW32)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Operations (IW33)'">Operations</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Components (IW33)'">Components</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Costs (IW33)'">Costs</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Planning (IW33)'">Planning</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Enhancement (IW33)'">Enhancement</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Log (IW33)'">Change: Log</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Operations (IW32)'">Operations</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Components (IW32)'">Components</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Operations (IW49N)'">Operations (IW49N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Multi Level (IW40)'">Multi Level (IW40)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Components (IWBK)'">Components (IWBK)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Material Docs (MB51)'">Material Docs (MB51)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Confirmations (IW47)'">Confirmations (IW47)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Requisitions/PO (ME5A)'">Requisitions/PO (ME5A)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Print Order (IW32)'">Print Order (IW32)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Order to BOOM (IW32)'">Order to BOOM (IW32)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Confirm (IW41)'">Confirm (IW41)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Cancel Confirm (IW45)'">Cancel Confirm (IW45)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: WO List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mWOList', 'c32'"><span id="c32" class="caret caret-right"></span>WO List</span>
+                <ul id="mWOList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Open WO (IW39)'">Display: Open WO (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed Orders (IW39H)'">Display: Closed Orders (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO (IW38)'">Change: Open WO (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Operations List (IW49N)'">Operations List (IW49N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Multi Level List (IW40)'">Multi Level List (IW40)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Components List (IWBK)'">Components List (IWBK)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Confirmations List (IW47)'">Confirmations List (IW47)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Material Docs List (MB51)'">Material Docs List (MB51)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Req./PO List (ME5A)'">Req./PO List (ME5A)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Gantt (/PGPNL/GS_D)'">Display: Gantt (/PGPNL/GS_D)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Release (IW38)'">Mass Release (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass TECO (IW38)'">Mass TECO (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Status 4SCH (IW38)'">Mass Status 4SCH (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Status 5COM (IW38)'">Mass Status 5COM (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Change: Status (IW38)'">Mass Change: Status (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Change: Date (IW38)'">Mass Change: Date (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Print Orders (/PROGROUP/PPM)'">Mass Print Orders (/PROGROUP/PPM)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Confirmations (IW38)'">Mass Confirmations (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Mass Cancel Confirmations (IW45)'">Mass Cancel Confirmations (IW45)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Scheduler Gantt (/PGP/SCHEDULER)'">Scheduler Gantt (/PGP/SCHEDULER)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Notification -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mNotif', 'c33'"><span id="c33" class="caret caret-right"></span>Notification</span>
+                <ul id="mNotif" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Main (IW23)'">Display: Main (IW23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Main (IW22)'">Change: Main (IW22)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Summary (IW23)'">Display: Summary (IW23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Location (IW23)'">Display: Location (IW23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Extended Data (IW23)'">Display: Extended Data (IW23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Change Log (IW23)'">Display: Change Log (IW23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Multilevel (IW30)'">Multilevel (IW30)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Notification List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mNotifList', 'c34'"><span id="c34" class="caret caret-right"></span>Notification List</span>
+                <ul id="mNotifList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Open Notif. List (IW29)'">Display: Open Notif. List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed Notif. List (IW29)'">Display: Closed Notif. List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open Notif. List (IW28)'">Change: Open Notif. List (IW28)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Multilevel List (IW30)'">Multilevel List (IW30)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Open WO from Notif. (IW39)'">Display: Open WO from Notif. (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed WO from Notif. (IW39H)'">Display: Closed WO from Notif. (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO from Notif. (IW38)'">Change: Open WO from Notif. (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Avail. Compo. from Notif. (IWBK)'">Avail. Compo. from Notif. (IWBK)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Operations from Notif. (IW49N)'">Display: Operations from Notif. (IW49N)</button></li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Group: SAP P2P -->
+        <span class="group-title" onclick="ToggleVisibility 'grpP2P', 'c4'"><span id="c4" class="caret caret-right"></span>SAP P2P</span>
+        <ul id="grpP2P" class="hidden">
+            <!-- Menu: PO -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPO', 'c41'"><span id="c41" class="caret caret-right"></span>PO</span>
+                <ul id="mPO" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: PO (ME23)'">Display: PO (ME23)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: PO (ME23N)'">Display: PO (ME23N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Info (ME80FN)'">Display: Info (ME80FN)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Dunning Messages (ME91F)'">Dunning Messages (ME91F)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'PO List by PO (ME2N)'">PO List by PO (ME2N)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: PO List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPOList', 'c42'"><span id="c42" class="caret caret-right"></span>PO List</span>
+                <ul id="mPOList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'PO List (ME2N)'">PO List (ME2N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Info List (ME80FN)'">Info List (ME80FN)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Dunning List (ME91F)'">Dunning List (ME91F)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: PR -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPR', 'c43'"><span id="c43" class="caret caret-right"></span>PR</span>
+                <ul id="mPR" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: PR (ME53)'">Display: PR (ME53)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: PR (ME53N)'">Display: PR (ME53N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'PR List by PR (ME5A)'">PR List by PR (ME5A)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: PR List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPRList', 'c44'"><span id="c44" class="caret caret-right"></span>PR List</span>
+                <ul id="mPRList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'PR List (ME5A)'">PR List (ME5A)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Material -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mMat', 'c45'"><span id="c45" class="caret caret-right"></span>Material</span>
+                <ul id="mMat" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Stock Overview (MMBE)'">Stock Overview (MMBE)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Stock Movements (MB51)'">Stock Movements (MB51)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Basic Data'">Basic Data</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Technical Sheet'">Technical Sheet</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Consumption'">Consumption</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'MRP 1'">MRP 1</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Documents'">Documents</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Stock by Warehouse (MB52)'">Stock by Warehouse (MB52)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Reservations (MB24)'">Reservations (MB24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Batch Stocks (MB53)'">Batch Stocks (MB53)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'PO Orders (ME2N)'">PO Orders (ME2N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Structure (CC04)'">Display: Structure (CC04)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Where-Used List (CS15)'">Where-Used List (CS15)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Maint. Open WO (IW39)'">Display: Maint. Open WO (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO (IW38)'">Change: Open WO (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Maint. History (IWBK)'">Display: Maint. History (IWBK)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Material List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mMatList', 'c46'"><span id="c46" class="caret caret-right"></span>Material List</span>
+                <ul id="mMatList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Stock List (MB52)'">Stock List (MB52)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Movements List (MB51)'">Movements List (MB51)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'PO Orders List (ME2N)'">PO Orders List (ME2N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Reservations List (MB24)'">Reservations List (MB24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Maint. Open WO List (IW39)'">Display: Maint. Open WO List (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO List (IW38)'">Change: Open WO List (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Maint. History List (IWBK)'">Display: Maint. History List (IWBK)</button></li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Group: PMRs -->
+        <span class="group-title" onclick="ToggleVisibility 'grpPMRs', 'c5'"><span id="c5" class="caret caret-right"></span>PMRs</span>
+        <ul id="grpPMRs" class="hidden">
+            <!-- Menu: PMR -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPMR', 'c51'"><span id="c51" class="caret caret-right"></span>PMR</span>
+                <ul id="mPMR" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Plan (IP03)'">Display: Plan (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Plan (IP02)'">Change: Plan (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Task List (IP02)'">Change: Task List (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Operations (IP03)'">Operations (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Calls (IP03)'">Calls (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Calls History (IP03)'">Calls History (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Last Call (IP03)'">Last Call (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Enhancements (IP03)'">Enhancements (IP03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Calls History (IP24)'">Display: Calls History (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed WO (IW39H)'">Display: Closed WO (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Item (IP06)'">Display: Item (IP06)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: PMR List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mPMRList', 'c52'"><span id="c52" class="caret caret-right"></span>PMR List</span>
+                <ul id="mPMRList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Plan List (IP16)'">Plan List (IP16)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Calls (IP24)'">Calls (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Manual Call (IP10)'">Manual Call (IP10)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Schedule Plans (IP30)'">Schedule Plans (IP30)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: PMR Tree (ZPM004)'">Display: PMR Tree (ZPM004)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Open WO List (IW39)'">Display: Open WO List (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Close WO List (IW39H)'">Display: Close WO List (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO List (IW38)'">Change: Open WO List (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Start Cycle (IP10)'">Change: Start Cycle (IP10)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Start Plans (IP10)'">Change: Start Plans (IP10)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'New Start Plans (IP10)'">New Start Plans (IP10)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Set to 1 Week (IP02)'">Set to 1 Week (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Set to 1 Month (IP02)'">Set to 1 Month (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Set to 13 Weeks (IP02)'">Set to 13 Weeks (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Set to 1 Year (IP02)'">Set to 1 Year (IP02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Item List (IP18)'">Item List (IP18)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Item Calls (IP24)'">Item Calls (IP24)</button></li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Group: Master Data -->
+        <span class="group-title" onclick="ToggleVisibility 'grpMD', 'c6'"><span id="c6" class="caret caret-right"></span>Master Data</span>
+        <ul id="grpMD" class="hidden">
+            <!-- Menu: Equipment -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mEq', 'c61'"><span id="c61" class="caret caret-right"></span>Equipment</span>
+                <ul id="mEq" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Equipment (IE03)'">Display: Equipment (IE03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Characteristics'">Display: Characteristics</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: BOM (IE03)'">Display: BOM (IE03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open WO (IW39)'">Display:  Open WO (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed WO (IW39H)'">Display: Closed WO (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change:  Open WO (IW38)'">Change:  Open WO (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open Notif. (IW29)'">Display:  Open Notif. (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Closed Notifs (IW29)'">Display:  Closed Notifs (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Notif. (IW28)'">Change: Notif. (IW28)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Plans (IP18)'">Display: Plans (IP18)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Calls (IP24)'">Display: Calls (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: BOM (IB03)'">Display: BOM (IB03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: BOM (IB02)'">Change: BOM (IB02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Create: BOM (IB01)'">Create: BOM (IB01)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Task List (IA03)'">Display: Task List (IA03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Task List (IA02)'">Change: Task List (IA02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Create: Task List (IA01)'">Create: Task List (IA01)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'General Task Lists (IA17)'">General Task Lists (IA17)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Equip. List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mEqList', 'c62'"><span id="c62" class="caret caret-right"></span>Equip. List</span>
+                <ul id="mEqList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Equipment List (IH08)'">Equipment List (IH08)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Multi-Level List (IE07)'">Multi-Level List (IE07)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open WO List (IW39)'">Display:  Open WO List (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Closed WO List (IW39H)'">Display:  Closed WO List (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO List (IW38)'">Change: Open WO List (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open Notifs List (IW29)'">Display:  Open Notifs List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Closed Notifs List (IW29)'">Display:  Closed Notifs List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Notifs List (IW28)'">Change: Notifs List (IW28)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Maint. Plans List (IP18)'">Maint. Plans List (IP18)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Maint. Calls List (IP24)'">Maint. Calls List (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Equip. Task Lists (IA17)'">Equip. Task Lists (IA17)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'General Task Lists (IA17)'">General Task Lists (IA17)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Floc -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mFloc', 'c63'"><span id="c63" class="caret caret-right"></span>Floc</span>
+                <ul id="mFloc" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Floc (IL03)'">Display: Floc (IL03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Characteristics'">Display: Characteristics</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Structure/BOM'">Display: Structure/BOM</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open WO (IW39)'">Display:  Open WO (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed WO (IW39H)'">Display: Closed WO (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change:  Open WO (IW38)'">Change:  Open WO (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open Notif. (IW29)'">Display:  Open Notif. (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Closed Notifs (IW29)'">Display: Closed Notifs (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Notif. (IW28)'">Change: Notif. (IW28)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Plans (IP18)'">Display: Plans (IP18)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Calls (IP24)'">Display: Calls (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: BOM (IB03)'">Display: BOM (IB03)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: BOM (IB02)'">Change: BOM (IB02)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Create: BOM (IB01)'">Create: BOM (IB01)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display: Task List (IA13)'">Display: Task List (IA13)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Task List (IA12)'">Change: Task List (IA12)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Create: Task List (IA11)'">Create: Task List (IA11)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Floc List -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mFlocList', 'c64'"><span id="c64" class="caret caret-right"></span>Floc List</span>
+                <ul id="mFlocList" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Structural Display (IH01)'">Structural Display (IH01)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Floc List (IH06)'">Floc List (IH06)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Floc List (IH08)'">Floc List (IH08)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Status List (IL07)'">Status List (IL07)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open WO List (IW39)'">Display:  Open WO List (IW39)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Closed WO List (IW39H)'">Display:  Closed WO List (IW39H)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Open WO List (IW38)'">Change: Open WO List (IW38)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Open Notifs List (IW29)'">Display:  Open Notifs List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Display:  Closed Notifs List (IW29)'">Display:  Closed Notifs List (IW29)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Notifs List (IW28)'">Change: Notifs List (IW28)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Maint. Plans List (IP18)'">Maint. Plans List (IP18)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Maint. Calls List (IP24)'">Maint. Calls List (IP24)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Floc Task Lists (IA17)'">Floc Task Lists (IA17)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'General Task Lists (IA17)'">General Task Lists (IA17)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Document -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mDoc', 'c65'"><span id="c65" class="caret caret-right"></span>Document</span>
+                <ul id="mDoc" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Display: Document (CV03N)'">Display: Document (CV03N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Change: Document (CV02N)'">Change: Document (CV02N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Find Document (CV04N)'">Find Document (CV04N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Find Document List (CV04N)'">Find Document List (CV04N)</button></li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Group: Capex -->
+        <span class="group-title" onclick="ToggleVisibility 'grpCapex', 'c7'"><span id="c7" class="caret caret-right"></span>Capex</span>
+        <ul id="grpCapex" class="hidden">
+            <!-- Menu: Projects -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mProj', 'c71'"><span id="c71" class="caret caret-right"></span>Projects</span>
+                <ul id="mProj" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Structure List (CN42N)'">Structure List (CN42N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Hierarchy List (CN43N)'">Hierarchy List (CN43N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Cost Summary List (CNS41)'">Cost Summary List (CNS41)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Network Overview (CN46N)'">Network Overview (CN46N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Network List (CN47)'">Network List (CN47)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Network List (CN47N)'">Network List (CN47N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Network Details (CN48N)'">Network Details (CN48N)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: Networks -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mNet', 'c72'"><span id="c72" class="caret caret-right"></span>Networks</span>
+                <ul id="mNet" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Overview List (CN46N)'">Overview List (CN46N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Component Summary (CNS41)'">Component Summary (CNS41)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Activity List (CN47)'">Activity List (CN47)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Activity List (CN47N)'">Activity List (CN47N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Component Tracking (CN48N)'">Component Tracking (CN48N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Purchase Requisitions (ME5A)'">Purchase Requisitions (ME5A)</button></li>
+                </ul>
+            </li>
+            <!-- Menu: WBS -->
+            <li>
+                <span class="menu-title" onclick="ToggleVisibility 'mWBS', 'c73'"><span id="c73" class="caret caret-right"></span>WBS</span>
+                <ul id="mWBS" class="hidden">
+                    <li><button class="btn-action" onclick="RunAction 'Hierarchy List (CN43N)'">Hierarchy List (CN43N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Network Overview (CN46N)'">Network Overview (CN46N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Activity List (CN47)'">Activity List (CN47)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Activity List (CN47N)'">Activity List (CN47N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Component Summary (CNS41)'">Component Summary (CNS41)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Component Tracking (CN48N)'">Component Tracking (CN48N)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Purchase Requisitions (ME5A)'">Purchase Requisitions (ME5A)</button></li>
+                    <li><button class="btn-action" onclick="RunAction 'Work Orders (IW38)'">Work Orders (IW38)</button></li>
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Group: Setup -->
+        <span class="group-title" onclick="ToggleVisibility 'grpSetup', 'c8'"><span id="c8" class="caret caret-right"></span>Setup</span>
+        <ul id="grpSetup" class="hidden">
+            <li><button class="btn-action" onclick="RunAction 'Show Setup'">Show Setup</button></li>
+            <li><button class="btn-action" onclick="RunAction 'Hide Setup'">Hide Setup</button></li>
+            <li><button class="btn-action" onclick="RunAction 'Technical Support'">Technical Support</button></li>
+            <li><button class="btn-action" onclick="RunAction 'About'">About</button></li>
+        </ul>
+
+        </div>
+    </div>
+    <div class="content">
+        <div id="status">En attente...</div>
+    </div>
+    </div>
+</body>
+</html>

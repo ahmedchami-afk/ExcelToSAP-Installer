@@ -1,0 +1,116 @@
+
+
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+    
+    <ribbon>
+		<tabs>
+			<tab id="customTab" label="ExcelToSAP" insertAfterMso= "TabDeveloper">
+
+				<group id="customGroup6" label="SAP Session">
+                    <button id="customButton12" label="Log ON" size="large" onAction="LogON" imageMso="AppointmentColor9" />
+                    <button id="customButton13" label="LogOFF" size="large" onAction="LogOFF" imageMso="MasterViewClose" />
+				</group>
+
+                <group id="customGroup" label="Automatic Data">
+                    <button id="customButton1" label="SAP Default" size="large" onAction="Main" imageMso="StarRatedFull" />
+                    <button id="customButton2" label="SAP Form" size="large" onAction="Mainform" imageMso="ActiveXButton" />
+                </group>    
+                    
+                <group id="customGroup8" label="SAP Commaneds">
+                    <button id="customButton14" label="PM Order" size="large" onAction="PMOrder" imageMso="GroupClipboard"/>
+                    <button id="customButton15" label="Notification" size="large" onAction="Notification" imageMso="Info"/>
+
+                    <separator id="separator2"/>
+                    <button id="customButton16" label="Purchase Order" size="large" onAction="PurchaseOrder" image="Purshase" />
+                    <button id="customButton17" label="Requisition" size="large" onAction="Requisitions" image="Requisition" />
+
+                    <separator id="separator3"/>
+                    <button id="customButton19" label="Material" size="large" onAction="Material" imageMso="AdpDiagramNameOnly" />
+
+                    <separator id="separator4"/>
+                    <button id="customButton18" label="PMR" size="large" onAction="MaintenancePlan" imageMso="CalendarInsert" />
+
+                    <separator id="separator5"/>
+                    <button id="customButton20" label="FL" size="large" onAction="FunctionLocation" imageMso="RmsNavigationBarHome" />
+                    <button id="customButton21" label="EQ" size="large" onAction="Equipments" imageMso="ControlToolboxOutlook" />
+                </group>
+
+                
+                
+                <!---->
+                    
+                <group id="customGroup9" label="KPIs Data Load">
+                    
+                    <button id="LoadKPIDashboardBtn" label="KPIs" onAction="KPI_Load_KPI_Dashboars" image="KPI"/>
+                    <button id="LoadDataKPIBtn" label="Actual Data" onAction="KPI_LoadData_Dashboars" image="collecteData"/>
+                    <button id="LoadOpenMRWoBtn" label="Open MR-Wo" onAction="KPI_open_MRWo_Dashboars" image="OpenWOMR"/>                   
+                    <separator id="separator6"/>
+                    
+                    <button id="LoadKPIBtn" label="KPIs Week" size="large" onAction="KPIs_List" image="kpiWeek"/>
+                </group>
+                <!---->
+                    
+                <group id="customGroup10" label="KPIs Data of the Week">    
+                    
+                    <button id="RefresheTCDBtn" label="Confirmed" size="large" onAction="KPIs_RefresheTCD_SCH" image="Confirmed"/>
+                    <separator id="separator14"/>
+                    
+                    <button id="CoplianceBtn3" label="No Compliance" size="normal" onAction="KPI_Compliance" image="compliance"/>
+                    <button id="SundayComplianceBtn" label="Out of week Comp." size="normal" onAction="KPI_SundayCompliance" imageMso="W"/>
+                    <button id="UnplannedBtn" label="Unplanned" size="normal" onAction="KPI_Unplanned" image="Unplanned"/>
+                    <separator id="separator8"/>
+                    
+                    <button id="OverdueBtn" label="Overdue" size="normal" onAction="KPI_Overdue" image="overdue"/>
+                    <button id="AccuracyBtn" label="Schudled" size="normal" onAction="KPI_Accuracy" imageMso="A"/>
+                    <button id="RatioBtn" label="Work Load" size="normal" onAction="KPI_SCH_Ratio" image="WorkLoad"/>
+                    <separator id="separator10"/>
+                    
+                    <button id="PMRBtn" label="PMR%" size="normal" onAction="KPI_PMR_Percentage" image="PMR"/>                    
+                    <button id="PMRnotPerformedBtn" label="not Performed" size="normal" onAction="KPI_PMR_NotPerformed" image="PMRnotPerformed"/>
+                    <button id="PMRManualCallBtn" label="Manual call" size="normal" onAction="KPI_PMR_ManualCall" image="ManualCall"/>
+                    <button id="PMREffecencyBtn" label="Effeciancy" size="normal" onAction="KPI_PMR_Efficiency" image="Effecincy"/>
+                    <button id="MRnoMobileMBtn" label="MR Without Mobile" size="normal" onAction="KPI_MR_no_Mobile" image="MRwoMobile"/>
+                    <button id="CPMnoMobileBtn" label="MR CPM wo Mobile" size="normal" onAction="KPI_CPM_NMobile" image="MRCPMnoMobile"/>
+                    <separator id="separator11"/>
+                    
+                    <button id="WoMRBtn" label="Wo-MR" size="normal" onAction="KPI_Wo_MR" image="Wo-MR"/>
+                    <button id="AgingWOBtn" label="Aging Wo" size="normal" onAction="KPI_Aging_Wo" image="AgingWO"/>
+                    <button id="AgingMRBtn" label="Aging MR" size="normal" onAction="KPI_Aging_MR" image="AgingMR"/>
+                    
+                    <!--
+                    <separator id="separator12"/>
+                    
+                    
+                    <button id="MobilenoCPMBtn" label="MR Mobile wo CPM" onAction="KPI_Mobile_NCPM" image="MobilewoCPM"/>
+                    -->
+                                            
+                </group>
+                    				
+				<group id="customGroup2" label="Setup File">
+					<button id="showsetupBtn" label="Show Setup" size="large" onAction="showsetup" imageMso="DefinePrintStyles" />
+					<button id="hidesetupbtn" label="Hide Setup" size="large" onAction="hidesetups" imageMso="ProtectDocument" />
+                </group>
+
+                <group id="customGroup4" label="Support">
+                    <button id="Aboutpbtn" label="About" size="large" onAction="Aboutp" imageMso="Help" />
+					<button id="techsupbtn" label="Technical Support" size="large" onAction="techsup" imageMso="TechnicalSupport" />
+                </group>
+
+			</tab>
+		</tabs>
+	</ribbon>
+
+
+   <contextMenus>
+      <contextMenu idMso="ContextMenuCell">
+         <button id="customButton8" label= "SAP-Default" onAction="Main" imageMso="StarRatedFull" insertBeforeMso="Cut"/>
+         <button id="customButton9" label= "SAP-Form" onAction="Mainform" imageMso="ActiveXButton" insertBeforeMso="Cut"/>
+      </contextMenu>
+
+      <contextMenu idMso="ContextMenuListRange">
+         <button id="customButton10" label= "SAP-Default" onAction="Main" imageMso="StarRatedFull" />
+         <button id="customButton11" label= "SAP-Form" onAction="Mainform" imageMso="ActiveXButton" />
+      </contextMenu>
+   </contextMenus>
+
+</customUI>

@@ -1,0 +1,53 @@
+1. Architecture et Structure du Code
+Améliorations proposées :
+
+///Factorisation (DRY - Don't Repeat Yourself) : Créer une fonction générique centrale pour l'exécution des transactions.
+///Exemple : Public Sub RunSAPTransaction(TCode As String, Optional FieldID As String, Optional Value As Variant, Optional IsList As Boolean = False).
+///Les modules spécifiques (Equipment, PM_Order) ne feraient qu'appeler cette fonction avec les bons paramètres.
+
+///Encapsulation : Passer les objets (comme session) en paramètres des fonctions plutôt que d'utiliser g_Session partout.
+
+*2. Gestion des Erreurs et Stabilité
+Améliorations proposées :
+
+///Supprimer End : Remplacer End par une gestion de sortie propre (Exit Sub après avoir appelé une fonction de nettoyage Cleanup).
+Gestion d'erreur centralisée : Utiliser Err.Raise pour faire remonter les erreurs vers une procédure principale qui gère l'affichage et le log, plutôt que d'afficher des MsgBox dans chaque sous-fonction.
+///Attentes dynamiques : Remplacer les Application.Wait par des boucles d'attente qui vérifient si l'objet SAP est disponible ou si la propriété g_Session.Busy est fausse.
+
+3. Robustesse SAP GUI Scripting
+Améliorations proposées :
+
+///Injection directe : Au lieu de copier/coller via le presse-papiers, il est préférable d'utiliser les méthodes de l'objet SAP GUI pour injecter des tableaux de valeurs directement si possible, ou de boucler sur les lignes pour remplir les champs (bien que plus lent, c'est plus sûr pour de petits volumes).
+///Vérification de transaction : Avant d'écrire dans un champ, vérifier que l'on est bien sur l'écran attendu (vérifier g_Session.Info.Transaction ou le titre de la fenêtre).
+
+4. Configuration et Sécurité
+Améliorations proposées :
+
+---onfiguration externalisée : Déplacer la liste des administrateurs et les chemins d'installation SAP dans la feuille "Setup" ou un fichier de config externe.
+///Détection dynamique : Utiliser le registre Windows ou des variables d'environnement pour trouver le chemin de saplogon.exe plutôt que de le coder en dur.
+
+5. Performance et Expérience Utilisateur
+Améliorations proposées :
+
+///Limiter la portée des événements : Vérifier si le classeur actif est bien celui concerné ou si la feuille active est pertinente avant d'exécuter la logique du clic droit.
+///Optimisation Excel : S'assurer que Application.ScreenUpdating = False et Calculation = xlManual sont bien appliqués au tout début des processus longs (ce qui semble être fait via modUtils.OptimizeExcel, mais il faut s'assurer que RestoreExcel est toujours appelé, même en cas d'erreur, ce qui n'est pas garanti à cause de l'instruction End).
+
+
+
+Résumé des priorités
+URGENT : Remplacer tous les End par une gestion de sortie propre pour éviter de laisser Excel dans un état instable (calcul manuel, événements désactivés).
+HAUTE : Factoriser le code d'appel SAP pour réduire la taille du projet et faciliter la maintenance.
+MOYENNE : Externaliser les règles de gestion (utilisateurs, chemins) dans la configuration.
+
+
+
+
+Nettoie le module KPIs_All_Plants.bas pour supprimer les appels redondants au presse-papiers
+
+
+corrige l'encodage du fichier (BOM UTF-8) du module
+
+Mise à jour des procédures privées pour accepter et utiliser session dans Equipment.bas
+
+
+
